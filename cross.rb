@@ -38,7 +38,7 @@ key_id = ans
 
 
 # 列数
-ncol = head.size
+ncol = question.size
 
 # read  data body
 body = []
@@ -46,20 +46,30 @@ f.each do |row|
   body << row
 end
 
+def check(value, key)
+  return false if value.nil? || value.empty?
+  value.split(/,/).each do |x|
+    return true if x.strip == key
+  end
+  return false
+end
+
 # 各列でキーを取得する．
-keys = [nil]  # １列目は処理しない．
+all_key = [nil]  # １列目は処理しない．
 
 1.upto(ncol-1) do |ic|
-  keys << body.map{|x|  x[ic]}.compact.sort.uniq
+  all_key << body.map{|x| x[ic]}.compact.map{|x|
+    x.split(/,/).map{|s| s.strip}
+  }.flatten.sort.uniq.reject{|x| x =~ /^----/}
 end
 
 # クロス集計列ごとにデータを分類
 # dataは3次元配列になっている
 data = []
-pkey = keys[key_id]
+pkey = all_key[key_id]
 
 pkey.each do |key|
-  data << body.select{|x| x[key_id] == key}
+  data << body.select{|x| check(x[key_id], key)}
 end
 
 #output
@@ -109,7 +119,7 @@ end
 
   res = keys[ic].map do |key|
     arr = data.map do |chunk|
-      chunk.select{|x| x[ic] == key}.size
+      chunk.select{|x| check(x[ic], key)}.size
     end
     arr.unshift key
   end
