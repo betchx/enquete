@@ -83,15 +83,20 @@ empty_line = head_line.map{ "" }
 if tex_out
   out = open(out_file,"w")
   # output header
-  out.puts <<-'NNN'
+  txt = <<-'NNN'
 \documentclass[a3paper,landscape]{jsarticle}
 \usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
 \usepackage{longtable}
 \usepackage{multicol}
+\title{若手技術者意識調査 業種別まとめ}
+\date{\today}
+\author{日建設計シビル 田辺}
 \begin{document}
+\maketitle
 \tableofcontents
 \clearpage
   NNN
+  out.puts NKF.nkf('-s',txt)
   #out.puts NKF.nkf('-s', '\section{属性}')
 else
   out_io = open(out_file,"w")
@@ -119,8 +124,27 @@ width = 300/(pkey.size+2)
 
 item_width = width * 2 + 10
 
+if tex_out
+  out.puts <<KKK
+\\section{#{question[key_id]}#{NKF.nkf('-s',"内訳")}}
+\\begin{tabular}{c#{'r'*pkey.size}r} \\hline
+\\multicolumn{1}{p{#{item_width}mm}}{} & 
+KKK
+  out.puts pkey.map{|val|
+    "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
+  }.join(' & ')
+  txt = '& \multicolumn{1}{p{1cm}}{合計}\\\\ \hline'
+  txt += "\n"
+  txt += "回答数&"
+  nums = data.map{|x| x.size}
+  txt += nums.join('&')
+  txt += "& #{nums.inject{|a,b| a+b}}\n"
+  txt += "\\\\ \\hline\n\\end{tabular}\n\\clearpage\n"
+  out.puts NKF.nkf('-Ws',txt)
+end
 
 1.upto(ncol-1) do |ic|
+  next if ic == key_id  # skip same one
   keys = all_key[ic].clone
   toi = NKF.nkf("-w",question[ic])
   
@@ -145,7 +169,6 @@ item_width = width * 2 + 10
     if tex_out
       out.puts "\\subsection{#{question[ic]}}"
       out.puts '\begin{multicols}{3}'
-      out.puts '\begin{itemize}'
     else
       out << empty_line  #空行
       out << [NKF.nkf("-s","自由意見："),question[ic]]
@@ -155,19 +178,28 @@ item_width = width * 2 + 10
     # loop
     pkey.size.times do |ikey|
       res = [pkey[ikey],""]
-      data[ikey].map{|x| x[ic]}.compact.each do |iken|
+      target = data[ikey].map{|x| x[ic]}.compact
+      next if target.empty?
+      if tex_out
+        out.puts "\\paragraph{#{res[0]}}"
+        out.puts '\begin{itemize}'
+      end
+      target.each do |iken|
         res[1] =  iken
         if tex_out
-          out.puts "\\item #{iken}(#{res[0]})"
+          out.puts "\\item #{iken}"
+          #out.puts "\\item #{iken}(#{res[0]})"
           #out.print res.join(' & ')
           #out.puts '\\ \hline'
         else
           out << res
         end
       end
+      if tex_out
+        out.puts "\\end{itemize}"
+      end
     end
     if tex_out
-      out.puts "\\end{itemize}"
       out.puts '\end{multicols}'
       out.puts '\\clearpage'
       #out.puts "\\end{tabular}"
@@ -183,7 +215,7 @@ item_width = width * 2 + 10
       "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
     }.join(' & ')
     out.puts NKF.nkf('-s','& \multicolumn{1}{p{1cm}}{合計}\\\\ \hline')
-    out.puts '\endfirsthead'
+    out.puts '\endhead'
   else
     out << empty_line  #空行
     head_line[0] = question[ic] #ヘッダ行の変更
