@@ -230,7 +230,13 @@ item_width = width * 2 + 10
     end
     # 単独意見を抽出
     others = result.select{|x| x[-1]==1}
-    if others.size > 0 then
+    if others.size == 1 then
+      # 単独意見がひとつしかなければそのまま出力する
+      r = others[0]
+      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
+      out.puts r[1..-1].join(' & ')
+      out.puts '\\\\ \hline'
+    elsif others.size > 1 then
       other = others[0].map{0}
       others.each do |val|
         1.upto(other.size-1) do |i|
@@ -242,7 +248,7 @@ item_width = width * 2 + 10
       out.puts '\\\\ \hline'
     end
     out.puts '\end{longtable}'
-    if others.size > 0 then
+    if others.size > 1 then
       out.puts NKF.nkf('-s',"その他内訳：")
       out.puts '\begin{multicols}{3}'
       out.puts '\begin{itemize}'
