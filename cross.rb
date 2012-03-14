@@ -85,8 +85,9 @@ if tex_out
   # output header
   out.puts <<-'NNN'
 \documentclass[a3paper,landscape]{jsarticle}
-\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+\usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
 \usepackage{longtable}
+\usepackage{multicol}
 \begin{document}
 \tableofcontents
 \clearpage
@@ -143,6 +144,7 @@ item_width = width * 2 + 10
   if is_free
     if tex_out
       out.puts "\\subsection{#{question[ic]}}"
+      out.puts '\begin{multicols}{3}'
       out.puts '\begin{itemize}'
     else
       out << empty_line  #空行
@@ -166,6 +168,7 @@ item_width = width * 2 + 10
     end
     if tex_out
       out.puts "\\end{itemize}"
+      out.puts '\end{multicols}'
       out.puts '\\clearpage'
       #out.puts "\\end{tabular}"
     end
@@ -240,7 +243,8 @@ item_width = width * 2 + 10
     end
     out.puts '\end{longtable}'
     if others.size > 0 then
-      out.puts NKF.nkf('-s',"その他の意見：")
+      out.puts NKF.nkf('-s',"その他内訳：")
+      out.puts '\begin{multicols}{3}'
       out.puts '\begin{itemize}'
       others.each do |val|
         out.print '\item '
@@ -253,6 +257,7 @@ item_width = width * 2 + 10
         end
       end
       out.puts '\end{itemize}'
+      out.puts '\end{multicols}'
     end
     out.puts '\\clearpage'
   else
