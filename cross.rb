@@ -11,8 +11,9 @@ f = open(source)
 
 head = CSV.parse_line(f.gets)
 
-puts "クロス集計に用いる列を指定してください"
 ans = 0
+if ARGV.empty?
+puts "クロス集計に用いる列を指定してください"
 i = 0
 while ans == 0
   10.times do
@@ -26,6 +27,10 @@ while ans == 0
   puts "入力？（空行で次の行を表示)>"
   ans = gets.to_i
 end
+else
+  ans = ARGV.shift.to_i
+end
+
 
 
 
