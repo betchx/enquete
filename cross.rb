@@ -79,6 +79,8 @@ end
 1.upto(ncol-1) do |ic|
   if tex_out
     out.puts "\\subsection{#{head[ic]}}"
+    out.puts '\begin{tabular}{c'+'r'*pkey.size+'}'
+    out.puts head_line.join(' & ')+'\\'
   else
     out << empty_line  #空行
     head_line[0] = head[ic] #ヘッダ行の変更
@@ -100,19 +102,31 @@ end
   skey = sorted_pair.map{|a,b| b}
 
   res = keys[ic].map do |key|
-    data.map do |chunk|
+    arr = data.map do |chunk|
       chunk.select{|x| x[ic] == key}.size
     end
+    arr.unshift key
   end
   # calculate total
   res.each do |chunk|
-    chunk << chunk.inkect{|r,x| x + r}
+    chunk << chunk.inject{|r,x| x + r}
   end
 
   # sort
   result =  res.sort_by{|x| x[-1]}
 
-  
+  #output
+  if tex_out
+    result.each do |res|
+      out.puts res.join(' & ')
+      out.puts '\\\hline'
+    end
+    out.puts '\end{tabular}'
+  else
+    result.each do |res|
+      out << res
+    end
+  end
 end
 
 if tex_out
