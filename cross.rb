@@ -218,12 +218,42 @@ item_width = width * 2 + 10
 
   #output
   if tex_out
+    # 複数意見のみ出力
     result.each do |r|
+      break if r[-1] == 1
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
       out.puts r[1..-1].join(' & ')
       out.puts '\\\\ \hline'
     end
+    # 単独意見を抽出
+    others = result.select{|x| x[-1]==1}
+    if others.size > 0 then
+      other = others[0].map{0}
+      others.each do |val|
+        1.upto(other.size-1) do |i|
+          other[i] += val[i]
+        end
+      end
+      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{NKF.nkf('-s','その他')}} & "
+      out.puts other[1..-1].join(' & ')
+      out.puts '\\\\ \hline'
+    end
     out.puts '\end{longtable}'
+    if others.size > 0 then
+      out.puts NKF.nkf('-s',"その他の意見：")
+      out.puts '\begin{itemize}'
+      others.each do |val|
+        out.print '\item '
+        out.print val[0]
+        1.upto(ncol-1) do |i|
+          if val[i] == 1
+            out.puts "(#{head_line[i]})"
+            break
+          end
+        end
+      end
+      out.puts '\end{itemize}'
+    end
     out.puts '\\clearpage'
   else
     result.each do |r|
