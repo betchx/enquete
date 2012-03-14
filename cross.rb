@@ -84,10 +84,14 @@ if tex_out
   out = open(out_file,"w")
   # output header
   out.puts <<-'NNN'
-\documentclass[a4paper]{jarticle}
+\documentclass[a3paper,landscape]{jsarticle}
+\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+\usepackage{longtable}
 \begin{document}
 \tableofcontents
+\clearpage
   NNN
+  #out.puts NKF.nkf('-s', '\section{属性}')
 else
   out_io = open(out_file,"w")
   out = CSV::Writer.generate(out_io)
@@ -102,9 +106,18 @@ end
 dbout.close
 =end
 
-FREE_TAG = [ /自由に書いて/,/その理由は/,
-/具体的に記述/,/上記以外にどんなものがあればよかったですか/,
+FREE_TAG = [
+  /自由に書いて/,
+  /その理由は/,
+  /具体的に記述/,
+  /上記以外にどんなものがあればよかったですか/,
+  #/なぜそう思ったのか/
 ]
+
+width = 300/(pkey.size+2)
+
+item_width = width * 2 + 10
+
 
 1.upto(ncol-1) do |ic|
   keys = all_key[ic].clone
@@ -141,6 +154,7 @@ FREE_TAG = [ /自由に書いて/,/その理由は/,
     end
     if tex_out
       out.puts "\\end{itemize}"
+      out.puts '\\clearpage'
       #out.puts "\\end{tabular}"
     end
     next  # Go to Next question
@@ -148,8 +162,13 @@ FREE_TAG = [ /自由に書いて/,/その理由は/,
 
   if tex_out
     out.puts "\\subsection{#{question[ic]}}"
-    out.puts '\begin{tabular}{c'+'r'*pkey.size+'}'
-    out.puts head_line.join(' & ')+'\\'
+    out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
+    out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
+    out.print pkey.map{|val|
+      "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
+    }.join(' & ')
+    out.puts NKF.nkf('-s','& \multicolumn{1}{p{1cm}}{合計}\\\\ \hline')
+    out.puts '\endfirsthead'
   else
     out << empty_line  #空行
     head_line[0] = question[ic] #ヘッダ行の変更
@@ -188,10 +207,12 @@ FREE_TAG = [ /自由に書いて/,/その理由は/,
   #output
   if tex_out
     result.each do |r|
-      out.puts r.join(' & ')
-      out.puts '\\\hline'
+      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
+      out.puts r[1..-1].join(' & ')
+      out.puts '\\\\ \hline'
     end
-    out.puts '\end{tabular}'
+    out.puts '\end{longtable}'
+    out.puts '\\clearpage'
   else
     result.each do |r|
       out << r
