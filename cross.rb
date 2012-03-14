@@ -127,6 +127,18 @@ item_width = width * 2 + 10
   FREE_TAG.each do |re|
     is_free = true if toi =~ re
   end
+  if tex_out
+    unless ARGV.empty?
+      if ARGV[0].to_i == ic
+        ARGV.shift
+        if ARGV.empty? || ARGV[0] =~ /^\d+$/
+          out.puts '\section{}'
+        else
+          out.puts "\\section{#{NKF.nkf('-s',ARGV.shift)}}"
+        end
+      end
+    end
+  end
 
   if is_free
     if tex_out
