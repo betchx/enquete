@@ -31,8 +31,31 @@ else
   ans = ARGV.shift.to_i
 end
 
+key_id = ans
+
 # read  data body
 body = CSV.parse(f)
+
+# 列数
+ncol = head.size
+
+# 各列でキーを取得する．
+keys = [nil]  # １列目は処理しない．
+
+1.upto(ncol-1) do |ic|
+  keys << body.map{|x|  x[i]}.sort.uniq
+end
+
+# クロス集計列ごとにデータを分類
+# dataは3次元配列になっている
+data = []
+pkey = keys[key_id]
+
+pkey.each do |key|
+  data << body.select{|x| x[key_id] == key}
+end
+
+
 
 
 
