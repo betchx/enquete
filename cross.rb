@@ -31,7 +31,8 @@ else
   ans = ARGV.shift.to_i
 end
 
-
+# read  data body
+body = CSV.parse(f)
 
 
 
