@@ -88,7 +88,7 @@ if tex_out
 \usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
 \usepackage{longtable}
 \usepackage{multicol}
-\title{若手技術者意識調査 業種別まとめ}
+\title{土木を学ぶ学生対象アンケート 学年別まとめ}
 \date{\today}
 \author{日建設計シビル 田辺}
 \begin{document}
