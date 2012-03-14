@@ -55,9 +55,74 @@ pkey.each do |key|
   data << body.select{|x| x[key_id] == key}
 end
 
+#output
+out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output")
+tex_out = out_file =~ /\.tex$/i
 
+out = nil
+head_line = ["",pkey].flatten
+empty_line = head_line.map{ "" }
 
+if tex_out
+  out = open(out_file,"w")
+  # output header
+  out.puts <<-'NNN'
+\documentclass[a4paper]{jarticle}
+\begin{document}
+\tableofcontents
+  NNN
+else
+  out_io = open(out_file,"w")
+  out = CSV::Writer.generate(out_io)
+end
 
+1.upto(ncol-1) do |ic|
+  if tex_out
+    out.puts "\\subsection{#{head[ic]}}"
+  else
+    out << empty_line  #空行
+    head_line[0] = head[ic] #ヘッダ行の変更
+    out << head_line  #ヘッダ行
+  end
 
+=begin
+  # get total count to sort
+  totals = keys[ic].map do |key|
+    num = 0
+    body.each do |row|
+      num += 1 if row[ic] == key
+    end
+    [num,key]
+  end
+=end
+
+  sorted_pair = totals.sort_by{|a,b| a}
+  skey = sorted_pair.map{|a,b| b}
+
+  res = keys[ic].map do |key|
+    data.map do |chunk|
+      chunk.select{|x| x[ic] == key}.size
+    end
+  end
+  # calculate total
+  res.each do |chunk|
+    chunk << chunk.inkect{|r,x| x + r}
+  end
+
+  # sort
+  result =  res.sort_by{|x| x[-1]}
+
+  
+end
+
+if tex_out
+  # output footer
+  out.puts <<-'NNN'
+\end{document}
+  NNN
+  out.close
+else
+  out_io.close
+end
 
 
