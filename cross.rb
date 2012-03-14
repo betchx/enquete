@@ -117,7 +117,7 @@ FREE_TAG = [ /自由に書いて/,/その理由は/,
 
   if is_free
     if tex_out
-      out.puts "\\subsection{#{head[ic]}}"
+      out.puts "\\subsection{#{question[ic]}}"
       out.puts '\begin{itemize}'
     else
       out << empty_line  #空行
@@ -147,7 +147,7 @@ FREE_TAG = [ /自由に書いて/,/その理由は/,
   end
 
   if tex_out
-    out.puts "\\subsection{#{head[ic]}}"
+    out.puts "\\subsection{#{question[ic]}}"
     out.puts '\begin{tabular}{c'+'r'*pkey.size+'}'
     out.puts head_line.join(' & ')+'\\'
   else
