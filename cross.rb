@@ -67,7 +67,7 @@ out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output")
 tex_out = out_file =~ /\.tex$/i
 
 out = nil
-head_line = ["",pkey,"合計"].flatten
+head_line = ["",pkey,"Total\n"].flatten
 empty_line = head_line.map{ "" }
 
 if tex_out
