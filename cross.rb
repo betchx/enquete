@@ -12,7 +12,7 @@ source = arg_or_query("enquate csv file", "enquate.csv","soure file")
 #head = CSV.parse_line(f.gets)
 
 f = CSV.open(source,'r')
-head = f.shift
+question = f.shift
 
 ans = 0
 if ARGV.empty?
@@ -93,14 +93,66 @@ else
   out = CSV::Writer.generate(out_io)
 end
 
+=begin
+# debug
+dbout = CSV.open("keys.csv","w")
+all_key.each_with_index do |key,i|
+  dbout << [i,key].flatten
+end
+dbout.close
+=end
+
+FREE_TAG = [ /自由に書いて/,/その理由は/,
+/具体的に記述/,/上記以外にどんなものがあればよかったですか/,
+]
+
 1.upto(ncol-1) do |ic|
+  keys = all_key[ic].clone
+  toi = NKF.nkf("-w",question[ic])
+  
+  is_free = false
+  FREE_TAG.each do |re|
+    is_free = true if toi =~ re
+  end
+
+  if is_free
+    if tex_out
+      out.puts "\\subsection{#{head[ic]}}"
+      out.puts '\begin{itemize}'
+    else
+      out << empty_line  #空行
+      out << [NKF.nkf("-s","自由意見："),question[ic]]
+      out << [question[key_id], NKF.nkf("-s","回答\n")]
+    end
+
+    # loop
+    pkey.size.times do |ikey|
+      res = [pkey[ikey],""]
+      data[ikey].map{|x| x[ic]}.compact.each do |iken|
+        res[1] =  iken
+        if tex_out
+          out.puts "\\item #{iken}(#{res[0]})"
+          #out.print res.join(' & ')
+          #out.puts '\\ \hline'
+        else
+          out << res
+        end
+      end
+    end
+    if tex_out
+      out.puts "\\end{itemize}"
+      #out.puts "\\end{tabular}"
+    end
+    next  # Go to Next question
+  end
+
   if tex_out
     out.puts "\\subsection{#{head[ic]}}"
     out.puts '\begin{tabular}{c'+'r'*pkey.size+'}'
     out.puts head_line.join(' & ')+'\\'
   else
     out << empty_line  #空行
-    head_line[0] = head[ic] #ヘッダ行の変更
+    head_line[0] = question[ic] #ヘッダ行の変更
     out << head_line  #ヘッダ行
   end
 
@@ -117,15 +169,17 @@ end
   skey = sorted_pair.map{|a,b| b}
 =end
 
-  res = keys[ic].map do |key|
+  res = keys.map do |key|
     arr = data.map do |chunk|
       chunk.select{|x| check(x[ic], key)}.size
     end
     arr.unshift key
+    arr
   end
+
   # calculate total
-  res.each do |chunk|
-    chunk << chunk[1..-1].inject{|r,x| x + r}
+  res.each do |arr|
+    arr << arr[1..-1].inject{|r,x| x + r}
   end
 
   # sort
@@ -133,16 +187,17 @@ end
 
   #output
   if tex_out
-    result.each do |res|
-      out.puts res.join(' & ')
+    result.each do |r|
+      out.puts r.join(' & ')
       out.puts '\\\hline'
     end
     out.puts '\end{tabular}'
   else
-    result.each do |res|
-      out << res
+    result.each do |r|
+      out << r
     end
   end
+
 end
 
 if tex_out
