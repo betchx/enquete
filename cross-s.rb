@@ -21,11 +21,11 @@ i = 0
 while ans == 0
   10.times do
     i = i + 1
-    if head[i].nil?
+    if question[i].nil?
       i = 0
       break
     end
-    puts "#{i}: #{NKF.nkf('-w',head[i])}"
+    puts "#{i}: #{NKF.nkf('-w',question[i])}"
   end
   puts "入力？（空行で次の行を表示)>"
   ans = gets.to_i
