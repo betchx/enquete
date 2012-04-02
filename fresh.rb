@@ -4,7 +4,8 @@ $column = nil  # nilの場合は問い合わせる
 
 # 出力先
 # 拡張子がtexの場合はTeXで，それ以外はCSVで出力する．
-$output = "wakate.tex"
+# nilなら引数から取得するか問い合わせる
+$output = "wakate-test.tex"
 
 # TeXの場合のタイトル
 $title = "若手技術者意識調査 業種別まとめ"
