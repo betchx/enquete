@@ -82,8 +82,10 @@ pkey.each do |key|
 end
 
 #output
-out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output")
+out_file = $output
+out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output") if out_file.nil?
 tex_out = out_file =~ /\.tex$/i
+
 
 sec = nil
 if $sections

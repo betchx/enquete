@@ -2,6 +2,10 @@
 $source = 'wakate.csv'
 $column = nil  # nilの場合は問い合わせる
 
+# 出力先
+# 拡張子がtexの場合はTeXで，それ以外はCSVで出力する．
+$output = "wakate.tex"
+
 # TeXの場合のタイトル
 $title = "若手技術者意識調査 業種別まとめ"
 $author= "日建設計シビル 田辺"
