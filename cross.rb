@@ -4,6 +4,8 @@
 require 'csv'
 require 'arg_or_query'
 require 'nkf'
+require 'rubygems'
+require 'gruff'
 
 # 設定を記述したファイルを指定する．
 raise "設定ファイルを指定してください．" if ARGV.empty?
@@ -19,6 +21,7 @@ end
 
 f = CSV.open(source,'r')
 question = f.shift
+head = question.clone
 
 ans = 0
 if $culumn.nil?
@@ -85,7 +88,17 @@ end
 out_file = $output
 out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output") if out_file.nil?
 tex_out = out_file =~ /\.tex$/i
+# workdir for graphic
+$graph_dir = nil
+if tex_out
+  $graph_dir = out_file.sub(/\.tex$/i,'')
+  Dir.mkdir($graph_dir) unless File.directory?($graph_dir)
+end
 
+#出力先グラフファイル名を指定する
+def gout(ic)
+  sprintf("%s/QA-%03d.png",$graph_dir,ic)
+end
 
 sec = nil
 if $sections
@@ -98,7 +111,7 @@ else
     sec[key] = value
   end
 end
-set_num = sec.keys.sort
+sec_num = sec.keys.sort
 
 out = nil
 head_line = ["",pkey,"Total\n"].flatten
@@ -165,6 +178,9 @@ if tex_out
   out.puts NKF.nkf('-Ws',txt)
 end
 
+g = nil
+labels = nil
+gdata = nil
 1.upto(ncol-1) do |ic|
   next if ic == key_id  # skip same one
   keys = all_key[ic].clone
@@ -182,6 +198,7 @@ end
 
   if is_free
     if tex_out
+      # output 
       out.puts "\\subsection{#{question[ic]}}"
       out.puts '\begin{multicols}{3}'
     else
@@ -220,6 +237,14 @@ end
   end
 
   if tex_out
+    # graph
+    g = Gruff::SideStackedBar.new(800)
+    g.font = './font/ipagp.ttf'
+    g.title = "Question # #{ic}" #question[ic]
+    labels = []  #reset
+    i = 0
+    gdata = pkey.map{ ["Ans. #{i+=1}",[]]}
+
     out.puts "\\subsection{#{question[ic]}}"
     out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
     out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
@@ -271,6 +296,9 @@ end
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
       out.puts r[1..-1].join(' & ')
       out.puts "\\\\ \\hline"
+      gdata.each_with_index do |x,i|
+        x[1] << r[i+1].to_f
+      end
     end
     # 単独意見を抽出
     others = result.select{|x| x[-1]==1}
@@ -280,6 +308,10 @@ end
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
       out.puts r[1..-1].join(' & ')
       out.puts '\\\\ \hline'
+      labels << r[0]
+      gdata.each_with_index do |x,i|
+        x[1] << r[i+1].to_f
+      end
     elsif others.size > 1 then
       other = others[0].map{0}
       others.each do |val|
@@ -290,6 +322,10 @@ end
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{NKF.nkf('-s','その他')}} & "
       out.puts other[1..-1].join(' & ')
       out.puts "\\\\ \\hline"
+      labels << 'その他'
+      gdata.each_with_index do |x,i|
+        x[1] << r[i+1].to_f
+      end
     end
     out.puts "\\end{longtable}"
     if others.size > 1 then
@@ -309,6 +345,20 @@ end
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
+    ddd = open("debug.txt","w")
+    gdata.each do |cap,d|
+      g.data(cap, d.map{|x| x.to_f})
+      ddd.puts cap
+      ddd.puts d.map{|x| x.to_f}.join("\t")
+    end
+    ddd.close
+    hash_label = {}
+    labels.each_with_index{|x,i| hash_label[i]= x}
+    g.labels = hash_label
+    g.write(gout(ic))
+    out.puts "\\paragraph{グラフ}"
+    out.puts "\\includegraphics[width=8cm]{#{gout(ic)}}"
+
     out.puts "\\clearpage"
   else
     result.each do |r|
