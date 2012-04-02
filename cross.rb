@@ -1,39 +1,48 @@
 #! ruby
 # coding: utf-8
 
-
 require 'csv'
 require 'arg_or_query'
 require 'nkf'
 
-source = arg_or_query("enquate csv file", "enquate.csv","soure file")
+# 設定を記述したファイルを指定する．
+raise "設定ファイルを指定してください．" if ARGV.empty?
+template_file = ARGV.shift
+require template_file
 
-#f = open(source)
-#head = CSV.parse_line(f.gets)
+source = nil
+if $source
+  source = $source
+else
+  source = arg_or_query("enquate csv file", "enquate.csv","soure file")
+end
 
 f = CSV.open(source,'r')
 question = f.shift
 
 ans = 0
-if ARGV.empty?
-puts "クロス集計に用いる列を指定してください"
-i = 0
-while ans == 0
-  10.times do
-    i = i + 1
-    if head[i].nil?
-      i = 0
-      break
+if $culumn.nil?
+  if ARGV.empty?
+    puts "クロス集計に用いる列を指定してください"
+    i = 0
+    while ans == 0
+      10.times do
+        i = i + 1
+        if head[i].nil?
+          i = 0
+          break
+        end
+        puts "#{i}: #{NKF.nkf('-w',head[i])}"
+      end
+      puts "入力？（空行で次の行を表示)>"
+      ans = gets.to_i
     end
-    puts "#{i}: #{NKF.nkf('-w',head[i])}"
+  else
+    ans = ARGV.shift.to_i
   end
-  puts "入力？（空行で次の行を表示)>"
-  ans = gets.to_i
-end
 else
-  ans = ARGV.shift.to_i
+  ans = $column
 end
-
 key_id = ans
 
 
@@ -76,25 +85,44 @@ end
 out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output")
 tex_out = out_file =~ /\.tex$/i
 
+sec = nil
+if $sections
+  sec = $sections
+else
+  sec = {}
+  until ARGV.empty?
+    key = ARGV.shift
+    raise "セクションの設定がまちがっています" unless value = ARGV.shift
+    sec[key] = value
+  end
+end
+set_num = sec.keys.sort
+
 out = nil
 head_line = ["",pkey,"Total\n"].flatten
 empty_line = head_line.map{ "" }
 
 if tex_out
+  title = "アンケート集計結果"
+  title = $title if $title
+  author = "土木学会中部支部"
+  author = $author if $author
+
+
   out = open(out_file,"w")
   # output header
-  txt = <<-'NNN'
-\documentclass[a3paper,landscape]{jsarticle}
-\usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
-\usepackage{longtable}
-\usepackage{multicol}
-\title{若手技術者意識調査 業種別まとめ}
-\date{\today}
-\author{日建設計シビル 田辺}
-\begin{document}
-\maketitle
-\tableofcontents
-\clearpage
+  txt = <<-"NNN"
+\\documentclass[a3paper,landscape]{jsarticle}
+\\usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
+\\usepackage{longtable}
+\\usepackage{multicol}
+\\title{#{title}}
+\\date{\\today}
+\\author{#{author}}
+\\begin{document}
+\\maketitle
+\\tableofcontents
+\\clearpage
   NNN
   out.puts NKF.nkf('-s',txt)
   #out.puts NKF.nkf('-s', '\section{属性}')
@@ -111,14 +139,6 @@ all_key.each_with_index do |key,i|
 end
 dbout.close
 =end
-
-FREE_TAG = [
-  /自由に書いて/,
-  /その理由は/,
-  /具体的に記述/,
-  /上記以外にどんなものがあればよかったですか/,
-  #/なぜそう思ったのか/
-]
 
 width = 300/(pkey.size+2)
 
@@ -147,21 +167,14 @@ end
   next if ic == key_id  # skip same one
   keys = all_key[ic].clone
   toi = NKF.nkf("-w",question[ic])
-  
+
   is_free = false
   FREE_TAG.each do |re|
     is_free = true if toi =~ re
   end
   if tex_out
-    unless ARGV.empty?
-      if ARGV[0].to_i == ic
-        ARGV.shift
-        if ARGV.empty? || ARGV[0] =~ /^\d+$/
-          out.puts '\section{}'
-        else
-          out.puts "\\section{#{NKF.nkf('-s',ARGV.shift)}}"
-        end
-      end
+    if sec_num.include?(ic)
+      out.puts "\\section{#{NKF.nkf('-s',sec[ic])}}"
     end
   end
 
