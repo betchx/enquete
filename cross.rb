@@ -145,11 +145,11 @@ width = 300/(pkey.size+2)
 item_width = width * 2 + 10
 
 if tex_out
-  out.puts <<KKK
+  out.puts <<-KKK
 \\section{#{question[key_id]}#{NKF.nkf('-s',"内訳")}}
 \\begin{tabular}{c#{'r'*pkey.size}r} \\hline
 \\multicolumn{1}{p{#{item_width}mm}}{} & 
-KKK
+  KKK
   out.puts pkey.map{|val|
     "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
   }.join(' & ')
@@ -201,9 +201,6 @@ end
         res[1] =  iken
         if tex_out
           out.puts "\\item #{iken}"
-          #out.puts "\\item #{iken}(#{res[0]})"
-          #out.print res.join(' & ')
-          #out.puts '\\ \hline'
         else
           out << res
         end
@@ -271,7 +268,7 @@ end
       break if r[-1] == 1
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
       out.puts r[1..-1].join(' & ')
-      out.puts '\\\\ \hline'
+      out.puts "\\\\ \\hline"
     end
     # 単独意見を抽出
     others = result.select{|x| x[-1]==1}
@@ -290,13 +287,13 @@ end
       end
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{NKF.nkf('-s','その他')}} & "
       out.puts other[1..-1].join(' & ')
-      out.puts '\\\\ \hline'
+      out.puts "\\\\ \\hline"
     end
-    out.puts '\end{longtable}'
+    out.puts "\\end{longtable}"
     if others.size > 1 then
       out.puts NKF.nkf('-s',"その他内訳：")
-      out.puts '\begin{multicols}{3}'
-      out.puts '\begin{itemize}'
+      out.puts "\\begin{multicols}{3}"
+      out.puts "\\begin{itemize}"
       others.each do |val|
         out.print '\item '
         out.print val[0]
@@ -307,10 +304,10 @@ end
           end
         end
       end
-      out.puts '\end{itemize}'
-      out.puts '\end{multicols}'
+      out.puts "\\end{itemize}"
+      out.puts "\\end{multicols}"
     end
-    out.puts '\\clearpage'
+    out.puts "\\clearpage"
   else
     result.each do |r|
       out << r
@@ -321,9 +318,7 @@ end
 
 if tex_out
   # output footer
-  out.puts <<-'NNN'
-\end{document}
-  NNN
+  out.puts "\\end{document}"
   out.close
 else
   out_io.close
