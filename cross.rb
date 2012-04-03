@@ -378,7 +378,6 @@ gdata = nil
     hash_label = {}
     labels.each_with_index{|x,i| hash_label[i] = x}
     g.labels = hash_label
-    out.puts "\\paragraph{グラフ}".sjis
 
     g.title_font_size = $theme[:title_font_size] || 20
     g.legend_font_size = $theme[:legend_font_size]||10
@@ -387,7 +386,9 @@ gdata = nil
     g.marker_font_size = $theme[:marker_font_size]||10
     gfile = gout(ic)
     g.write(gfile)
+    out.puts "\\begin{center}"
     out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
+    out.puts "\\end{center}"
     out.puts "\\clearpage"
   else
     result.each do |r|
