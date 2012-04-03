@@ -368,11 +368,14 @@ gdata = nil
     g.theme = $theme
     g.font = $theme[:font]
     g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
+    # add graph
     gdata.each do |cap,d|
       g.data(cap, d.map{|x| x.to_f})
     end
+    # labelの配列をハッシュに変更
     hash_label = {}
     labels.each_with_index{|x,i| hash_label[i] = x}
+    #ラベルを設定
     g.labels = hash_label
 
     # マージンは最小限に
