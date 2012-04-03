@@ -377,7 +377,8 @@ gdata = nil
     labels.each_with_index{|x,i| hash_label[i] = x}
     #ラベルを設定
     g.labels = hash_label
-
+    # 最小値をゼロに設定（データ追加後に設定する必要がある）
+    g.minimum_value = 0
     # マージンは最小限に
     g.bottom_margin = 10
     g.top_margin = 0
