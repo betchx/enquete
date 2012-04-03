@@ -7,6 +7,22 @@ require 'nkf'
 require 'rubygems'
 require 'gruff'
 
+
+def utf8(str)
+  str.utf8
+end
+def sjis(str)
+  str.sjis
+end
+class String
+  def utf8
+    NKF.nkf("-w",self)
+  end
+  def sjis
+    NKF.nkf("-s",self)
+  end
+end
+
 # 設定を記述したファイルを指定する．
 raise "設定ファイルを指定してください．" if ARGV.empty?
 template_file = ARGV.shift
@@ -35,7 +51,7 @@ if $culumn.nil?
           i = 0
           break
         end
-        puts "#{i}: #{NKF.nkf('-w',head[i])}"
+        puts "#{i}: #{utf8(head[i])}"
       end
       puts "入力？（空行で次の行を表示)>"
       ans = gets.to_i
@@ -139,8 +155,7 @@ if tex_out
 \\tableofcontents
 \\clearpage
   NNN
-  out.puts NKF.nkf('-s',txt)
-  #out.puts NKF.nkf('-s', '\section{属性}')
+  out.puts txt.sjis
 else
   out_io = open(out_file,"w")
   out = CSV::Writer.generate(out_io)
@@ -161,7 +176,7 @@ item_width = width * 2 + 10
 
 if tex_out
   out.puts <<-KKK
-\\section{#{question[key_id]}#{NKF.nkf('-s',"内訳")}}
+\\section{#{question[key_id]}#{"内訳".sjis}}
 \\begin{tabular}{c#{'r'*pkey.size}r} \\hline
 \\multicolumn{1}{p{#{item_width}mm}}{} & 
   KKK
@@ -184,7 +199,7 @@ gdata = nil
 1.upto(ncol-1) do |ic|
   next if ic == key_id  # skip same one
   keys = all_key[ic].clone
-  toi = NKF.nkf("-w",question[ic])
+  toi = utf8(question[ic])
 
   is_free = false
   FREE_TAG.each do |re|
@@ -192,19 +207,19 @@ gdata = nil
   end
   if tex_out
     if sec_num.include?(ic)
-      out.puts "\\section{#{NKF.nkf('-s',sec[ic])}}"
+      out.puts "\\section{#{sec[ic].sjis}}"
     end
   end
 
   if is_free
     if tex_out
       # output 
-      out.puts "\\subsection{#{question[ic]}}"
+      out.puts "\\subsection{#{question[ic].sjis}}"
       out.puts '\begin{multicols}{3}'
     else
       out << empty_line  #空行
-      out << [NKF.nkf("-s","自由意見："),question[ic]]
-      out << [question[key_id], NKF.nkf("-s","回答\n")]
+      out << ["自由意見：".sjis,question[ic]]
+      out << [question[key_id], "回答\n".sjis]
     end
 
     # loop
@@ -251,7 +266,7 @@ gdata = nil
     out.print pkey.map{|val|
       "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
     }.join(' & ')
-    out.puts NKF.nkf('-s','& \multicolumn{1}{p{1cm}}{合計}\\\\ \hline')
+    out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \hline'.sjis
     out.puts '\endhead'
   else
     out << empty_line  #空行
@@ -308,7 +323,7 @@ gdata = nil
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
       out.puts r[1..-1].join(' & ')
       out.puts '\\\\ \hline'
-      labels << r[0]
+      labels << r[0].utf8
       gdata.each_with_index do |x,i|
         x[1] << r[i+1].to_f
       end
@@ -319,17 +334,17 @@ gdata = nil
           other[i] += val[i]
         end
       end
-      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{NKF.nkf('-s','その他')}} & "
+      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{'その他'.sjis}} & "
       out.puts other[1..-1].join(' & ')
       out.puts "\\\\ \\hline"
       labels << 'その他'
       gdata.each_with_index do |x,i|
-        x[1] << r[i+1].to_f
+        x[1] << other[i+1].to_f
       end
     end
     out.puts "\\end{longtable}"
     if others.size > 1 then
-      out.puts NKF.nkf('-s',"その他内訳：")
+      out.puts "その他内訳：".sjis
       out.puts "\\begin{multicols}{3}"
       out.puts "\\begin{itemize}"
       others.each do |val|
@@ -356,8 +371,8 @@ gdata = nil
     labels.each_with_index{|x,i| hash_label[i]= x}
     g.labels = hash_label
     g.write(gout(ic))
-    out.puts "\\paragraph{グラフ}"
     out.puts "\\includegraphics[width=8cm]{#{gout(ic)}}"
+    out.puts "\\paragraph{グラフ}".sjis
 
     out.puts "\\clearpage"
   else
