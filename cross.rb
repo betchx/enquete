@@ -8,6 +8,21 @@ require 'rubygems'
 require 'gruff'
 require 'side_stacked_bar_fixed'
 
+def apply_theme(g)
+  g.theme = $theme
+  g.font = $theme[:font]
+  # マージンは最小限に
+  g.bottom_margin = 10
+  g.top_margin = 0
+  g.left_margin = 0
+  g.right_margin = 10
+  g.title_font_size = $theme[:title_font_size] || 20
+  g.legend_font_size = $theme[:legend_font_size]||10
+  g.legend_box_size = $theme[:legend_box_size] || g.legend_font_size
+  g.legend_margin = $theme[:legend_margin] || g.legend_font_size/4
+  g.marker_font_size = $theme[:marker_font_size]||10
+  g
+end
 
 def utf8(str)
   str.utf8
@@ -365,10 +380,9 @@ gdata = nil
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
-    g = Gruff::SideStackedBarFixed.new("2400x#{250+50*labels.size}")
-    g.theme = $theme
-    g.font = $theme[:font]
+    g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{250+50*labels.size}"))
     g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
+    g.sort = false
     # add graph
     gdata.each do |cap,d|
       g.data(cap, d.map{|x| x.to_f})
@@ -380,17 +394,6 @@ gdata = nil
     g.labels = hash_label
     # 最小値をゼロに設定（データ追加後に設定する必要がある）
     g.minimum_value = 0
-    # マージンは最小限に
-    g.bottom_margin = 10
-    g.top_margin = 0
-    g.left_margin = 0
-    g.right_margin = 10
-    g.sort = false
-    g.title_font_size = $theme[:title_font_size] || 20
-    g.legend_font_size = $theme[:legend_font_size]||10
-    g.legend_box_size = $theme[:legend_box_size] || g.legend_font_size
-    g.legend_margin = $theme[:legend_margin] || g.legend_font_size/4
-    g.marker_font_size = $theme[:marker_font_size]||10
     gfile = gout(ic)
     g.write(gfile)
     out.puts "\\begin{center}"
