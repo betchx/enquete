@@ -6,6 +6,7 @@ require 'arg_or_query'
 require 'nkf'
 require 'rubygems'
 require 'gruff'
+require 'side_stacked_bar_fixed'
 
 
 def utf8(str)
@@ -364,7 +365,7 @@ gdata = nil
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
-    g = Gruff::SideStackedBar.new("2400x#{250+50*labels.size}")
+    g = Gruff::SideStackedBarFixed.new("2400x#{250+50*labels.size}")
     g.theme = $theme
     g.font = $theme[:font]
     g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
