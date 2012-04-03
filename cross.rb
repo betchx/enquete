@@ -224,10 +224,6 @@ if tex_out
   NNN
 end
 
-gtheme={
-  :background_colors => "white",
-}
-
 g = nil
 labels = nil
 gdata = nil
