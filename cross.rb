@@ -144,7 +144,7 @@ if tex_out
   # output header
   txt = <<-"NNN"
 \\documentclass[a3paper,landscape]{jsarticle}
-\\usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
+\\usepackage[left=1.5cm,top=1cm,bottom=2cm,right=1cm]{geometry}
 \\usepackage{longtable}
 \\usepackage[dvipdfm]{graphicx}
 \\usepackage{multicol}
