@@ -365,16 +365,12 @@ gdata = nil
       out.puts "\\end{multicols}"
     end
     g = Gruff::SideStackedBar.new("2400x#{250+50*labels.size}")
-    ddd = open("debug.txt","w")
     g.theme = $theme
     g.font = $theme[:font]
     g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
     gdata.each do |cap,d|
       g.data(cap, d.map{|x| x.to_f})
-      ddd.puts cap
-      ddd.puts d.map{|x| x.to_f}.join("\t")
     end
-    ddd.close
     hash_label = {}
     labels.each_with_index{|x,i| hash_label[i] = x}
     g.labels = hash_label
