@@ -206,8 +206,22 @@ if tex_out
   nums = data.map{|x| x.size}
   txt += nums.join('&')
   txt += "& #{nums.inject{|a,b| a+b}}\n"
-  txt += "\\\\ \\hline\n\\end{tabular}\n\\clearpage\n"
+  txt += "\\\\ \\hline\n\\end{tabular}\n"
   out.puts NKF.nkf('-Ws',txt)
+  g = apply_theme(Gruff::Pie.new('2400x800'))
+  g.zero_degree = -90  # 上を原点に
+  g.title = "#{question[key_id].utf8}#{"内訳"}"
+  #g.labels = {0 => ""}
+  nums.each_with_index do |n,i|
+    g.data(pkey[i].utf8,[n])
+  end
+  g.write(gout(0))
+  out.puts <<-NNN
+\\begin{center}
+\\includegraphics[width=#{$theme[:width]}]{#{gout(0)}}
+\\end{center}
+\\clearpage
+  NNN
 end
 
 gtheme={
