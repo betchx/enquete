@@ -193,11 +193,16 @@ if tex_out
   out.puts NKF.nkf('-Ws',txt)
 end
 
+gtheme={
+  :background_colors => "white",
+}
+
 g = nil
 labels = nil
 gdata = nil
 1.upto(ncol-1) do |ic|
   next if ic == key_id  # skip same one
+  $stderr.puts sprintf("処理中：Q%03d :%s",ic, question[ic].utf8)
   keys = all_key[ic].clone
   toi = utf8(question[ic])
 
