@@ -173,7 +173,7 @@ dbout.close
 
 width = 300/(pkey.size+2)
 
-item_width = width * 2 + 10
+item_width = width * 1.5 + 10
 
 if tex_out
   out.puts <<-KKK
