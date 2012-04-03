@@ -259,8 +259,6 @@ gdata = nil
 
   if tex_out
     # graph
-    g = Gruff::SideStackedBar.new(800)
-    g.title = "Question # #{ic}" #question[ic]
     labels = []  #reset
     i = 0
     gdata = pkey.map{|x| [utf8(x),[]]}
@@ -366,9 +364,11 @@ gdata = nil
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
+    g = Gruff::SideStackedBar.new("2400x#{250+50*labels.size}")
     ddd = open("debug.txt","w")
     g.theme = $theme
     g.font = $theme[:font]
+    g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
     gdata.each do |cap,d|
       g.data(cap, d.map{|x| x.to_f})
       ddd.puts cap
