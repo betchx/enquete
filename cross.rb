@@ -258,7 +258,7 @@ gdata = nil
     g.title = "Question # #{ic}" #question[ic]
     labels = []  #reset
     i = 0
-    gdata = pkey.map{ ["Ans. #{i+=1}",[]]}
+    gdata = pkey.map{|x| [utf8(x),[]]}
 
     out.puts "\\subsection{#{question[ic]}}"
     out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
