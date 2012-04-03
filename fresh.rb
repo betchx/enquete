@@ -27,3 +27,47 @@ FREE_TAG = [
   #/なぜそう思ったのか/
 ]
 
+module Color
+  
+  black, white = *%w(#000000 #FFFFFF)
+  gray, darkgray, dimgray=   *%w(#808080 #A9A9A9 #696969)
+  red, pink, darkred =       *%w(#FF0000 #FFC0CB #8B0000)
+  blue, skyblue, darkblue =  *%w(#0000FF #87CEEB #000088)
+  green, lime, darkgreen =   *%w(#008000 #00FF00 #006400)
+  purple, violet, indigo =   *%w(#800080 #EE82EE #4B0082)
+  orange, gold, darkorange = *%w(#FFa500 #FFa500 #FF8C00)
+
+$colors = [
+  gray,
+  red,
+  blue,
+  green,
+  purple,
+  orange,
+  darkgray,
+  pink,
+  skyblue,
+  lime,
+  violet,
+  gold,
+  dimgray,
+  darkred,
+  darkblue,
+  darkgreen,
+  indigo,
+  darkorange,
+]
+end
+
+# TeXに埋め込むグラフの設定
+$theme = {
+  :font => './font/ipagp.ttf',
+  :font_color => 'black',
+  :marker_color => 'black',
+  :background_colors => 'white',
+  :title_font_size => 10,
+  :legend_font_size => 9,
+  :marker_font_size => 10,
+  :colors => $colors,
+  :width => '15in'
+}

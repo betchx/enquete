@@ -260,7 +260,6 @@ gdata = nil
   if tex_out
     # graph
     g = Gruff::SideStackedBar.new(800)
-    g.font = './font/ipagp.ttf'
     g.title = "Question # #{ic}" #question[ic]
     labels = []  #reset
     i = 0
@@ -368,6 +367,8 @@ gdata = nil
       out.puts "\\end{multicols}"
     end
     ddd = open("debug.txt","w")
+    g.theme = $theme
+    g.font = $theme[:font]
     gdata.each do |cap,d|
       g.data(cap, d.map{|x| x.to_f})
       ddd.puts cap
@@ -377,10 +378,16 @@ gdata = nil
     hash_label = {}
     labels.each_with_index{|x,i| hash_label[i] = x}
     g.labels = hash_label
-    g.write(gout(ic))
-    out.puts "\\includegraphics[width=8cm]{#{gout(ic)}}"
     out.puts "\\paragraph{グラフ}".sjis
 
+    g.title_font_size = $theme[:title_font_size] || 20
+    g.legend_font_size = $theme[:legend_font_size]||10
+    g.legend_box_size = $theme[:legend_box_size] || g.legend_font_size
+    g.legend_margin = $theme[:legend_margin] || g.legend_font_size/4
+    g.marker_font_size = $theme[:marker_font_size]||10
+    gfile = gout(ic)
+    g.write(gfile)
+    out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
     out.puts "\\clearpage"
   else
     result.each do |r|
