@@ -379,6 +379,12 @@ gdata = nil
     labels.each_with_index{|x,i| hash_label[i] = x}
     g.labels = hash_label
 
+    # マージンは最小限に
+    g.bottom_margin = 10
+    g.top_margin = 0
+    g.left_margin = 0
+    g.right_margin = 10
+    g.sort = false
     g.title_font_size = $theme[:title_font_size] || 20
     g.legend_font_size = $theme[:legend_font_size]||10
     g.legend_box_size = $theme[:legend_box_size] || g.legend_font_size
