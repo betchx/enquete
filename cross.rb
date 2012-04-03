@@ -311,6 +311,7 @@ gdata = nil
       out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
       out.puts r[1..-1].join(' & ')
       out.puts "\\\\ \\hline"
+      labels << r[0].utf8
       gdata.each_with_index do |x,i|
         x[1] << r[i+1].to_f
       end
@@ -368,7 +369,7 @@ gdata = nil
     end
     ddd.close
     hash_label = {}
-    labels.each_with_index{|x,i| hash_label[i]= x}
+    labels.each_with_index{|x,i| hash_label[i] = x}
     g.labels = hash_label
     g.write(gout(ic))
     out.puts "\\includegraphics[width=8cm]{#{gout(ic)}}"
