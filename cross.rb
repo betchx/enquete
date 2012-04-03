@@ -146,6 +146,7 @@ if tex_out
 \\documentclass[a3paper,landscape]{jsarticle}
 \\usepackage[left=2cm,top=1cm,bottom=2cm,right=2cm]{geometry}
 \\usepackage{longtable}
+\\usepackage[dvipdfm]{graphicx}
 \\usepackage{multicol}
 \\title{#{title}}
 \\date{\\today}
