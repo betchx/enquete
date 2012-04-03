@@ -227,6 +227,13 @@ end
 g = nil
 labels = nil
 gdata = nil
+hash_label = {}
+if $theme[:transpose]
+  pkey.each_with_index do |v,i|
+    hash_label[i] = v
+  end
+end
+
 1.upto(ncol-1) do |ic|
   next if ic == key_id  # skip same one
   $stderr.puts sprintf("処理中：Q%03d :%s",ic, question[ic].utf8)
@@ -287,13 +294,13 @@ gdata = nil
     # graph
     labels = []  #reset
     i = 0
-    gdata = pkey.map{|x| [utf8(x),[]]}
+    gdata = pkey.map{|x| []}
 
     out.puts "\\subsection{#{question[ic]}}"
     out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
     out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
     out.print pkey.map{|val|
-      "\\multicolumn{1}{p{#{width}mm}}{#{val}\\hfil}"
+      "\\multicolumn{1}{p{#{width}mm}}{#{val}\\hfill}"
     }.join(' & ')
     out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
     out.puts '\endhead'
@@ -342,7 +349,7 @@ gdata = nil
       out.puts "\\\\ \\hline"
       labels << r[0].utf8
       gdata.each_with_index do |x,i|
-        x[1] << r[i+1].to_f
+        x << r[i+1].to_f
       end
     end
     # 単独意見を抽出
@@ -355,7 +362,7 @@ gdata = nil
       out.puts '\\\\ \hline'
       labels << r[0].utf8
       gdata.each_with_index do |x,i|
-        x[1] << r[i+1].to_f
+        x << r[i+1].to_f
       end
     elsif others.size > 1 then
       other = others[0].map{0}
@@ -369,7 +376,7 @@ gdata = nil
       out.puts "\\\\ \\hline"
       labels << 'その他'
       gdata.each_with_index do |x,i|
-        x[1] << other[i+1].to_f
+        x << other[i+1].to_f
       end
     end
     out.puts "\\end{longtable}"
@@ -390,20 +397,28 @@ gdata = nil
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
-    g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{250+50*labels.size}"))
+    rows = $theme[:transpose]?(pkey.size):(lables.size)
+    g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{250+50*rows}"))
     g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
     g.sort = false
     # add graph
-    gdata.each do |cap,d|
-      g.data(cap, d.map{|x| x.to_f})
+    unless $theme[:transpose]
+      # 縦横を入れ替えない場合
+      gdata.each_with_index do |d,i|
+        g.data(pkey[i], d.map{|x| x.to_f})
+      end
+      # labelの配列をハッシュに変更
+      hash_label = {}
+      labels.each_with_index{|x,i| hash_label[i] = x}
+    else
+      # 縦横を入れ替える場合
+      labels.each_with_index do |label,i|
+        g.data(label,gdata.map{|x| x[i]})
+      end
     end
-    # labelの配列をハッシュに変更
-    hash_label = {}
-    labels.each_with_index{|x,i| hash_label[i] = x}
     #ラベルを設定
     g.labels = hash_label
-    # 最小値をゼロに設定（データ追加後に設定する必要がある）
-    g.minimum_value = 0
+
     gfile = gout(ic)
     g.write(gfile)
     out.puts "\\begin{center}"

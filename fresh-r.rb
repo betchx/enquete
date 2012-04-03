@@ -5,7 +5,7 @@ $column = nil  # nilの場合は問い合わせる
 # 出力先
 # 拡張子がtexの場合はTeXで，それ以外はCSVで出力する．
 # nilなら引数から取得するか問い合わせる
-$output = "wakate-test.tex"
+$output = "wakate-test-r.tex"
 
 # TeXの場合のタイトル
 $title = "若手技術者意識調査 業種別まとめ"
@@ -28,7 +28,6 @@ FREE_TAG = [
 ]
 
 module Color
-  
   black, white = *%w(#000000 #FFFFFF)
   gray, darkgray, dimgray=   *%w(#808080 #A9A9A9 #696969)
   red, pink, darkred =       *%w(#FF0000 #FFC0CB #8B0000)
