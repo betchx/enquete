@@ -14,11 +14,12 @@ $author= "日建設計シビル 田辺"
 # セクションわけの設定
 $sections = {
   1 => '回答者の属性について',
-  7 => '学生時 代のことについて',
+  7 => '学生時代のことについて',
   50=> '今現在のことについて',
 }
 
-# 以下にマッチする質問は自由記述とみなす
+# 以下にマッチする質問は自由記述とみなし，
+# 結果は集計せずにリストとして出力する．
 FREE_TAG = [
   /自由に書いて/,
   /その理由は/,
@@ -27,36 +28,9 @@ FREE_TAG = [
   #/なぜそう思ったのか/
 ]
 
-module Color
-  black, white = *%w(#000000 #FFFFFF)
-  gray, darkgray, dimgray=   *%w(#808080 #A9A9A9 #696969)
-  red, pink, darkred =       *%w(#FF0000 #FFC0CB #8B0000)
-  blue, skyblue, darkblue =  *%w(#0000FF #87CEEB #000088)
-  green, lime, darkgreen =   *%w(#008000 #00FF00 #006400)
-  purple, violet, indigo =   *%w(#800080 #EE82EE #4B0082)
-  orange, gold, darkorange = *%w(#FFa500 #FFa500 #FF8C00)
+# グラフの色の設定
+require 'graff-color'
 
-$colors = [
-  gray,
-  red,
-  blue,
-  green,
-  purple,
-  orange,
-  darkgray,
-  pink,
-  skyblue,
-  lime,
-  violet,
-  gold,
-  dimgray,
-  darkred,
-  darkblue,
-  darkgreen,
-  indigo,
-  darkorange,
-]
-end
 
 # TeXに埋め込むグラフの設定
 $theme = {
@@ -69,6 +43,6 @@ $theme = {
   :title_font_size => 10,
   :legend_font_size => 9,
   :marker_font_size => 10,
-  :colors => $colors,
+  :colors => Gruff::Color.color_loop,
   :width => '12in'
 }
