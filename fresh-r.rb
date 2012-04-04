@@ -1,5 +1,5 @@
 
-$source = 'wakate.csv'
+$source = 'new-wakate.csv'
 $column = nil  # nilの場合は問い合わせる
 
 # 出力先
@@ -61,7 +61,8 @@ end
 # TeXに埋め込むグラフの設定
 $theme = {
   :font => './font/ipagp.ttf', #フォントファイル名
-  :transpose => false, # 縦横入れ替え
+  :transpose => true, # 縦横入れ替え
+  :normalize => true, # 正規化して割合で表示する
   :font_color => 'black',
   :marker_color => 'black',
   :background_colors => 'white',
@@ -69,5 +70,5 @@ $theme = {
   :legend_font_size => 9,
   :marker_font_size => 10,
   :colors => $colors,
-  :width => '15in'
+  :width => '12in'
 }

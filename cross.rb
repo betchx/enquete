@@ -397,23 +397,57 @@ end
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
-    rows = $theme[:transpose]?(pkey.size):(lables.size)
-    g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{250+50*rows}"))
+    rows = $theme[:transpose]?(pkey.size):(labels.size)
+    hbase = $theme[:normalize]?350:250
+    g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{hbase+50*rows}"))
     g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
     g.sort = false
     # add graph
     unless $theme[:transpose]
       # 縦横を入れ替えない場合
-      gdata.each_with_index do |d,i|
-        g.data(pkey[i], d.map{|x| x.to_f})
+
+      if $theme[:normalize]
+        sums = labels.map{0}
+        labels.size.times do |i|
+          sums[i] = gdata.inject(0){|a,v| a+v[i]}
+        end
+        rates = sums.map{|x| (x==0.0)?0:(100.0 / x)}
+        gdata.each_with_index do |d,i|
+          r = Array.new(d.size)
+          rates.each_with_index do |y,k|
+            r[k] = d[k] * y
+          end
+          g.data(pkey[i].utf8, r)
+        end
+        g.x_axis_label = "割合 (%)"
+      else
+        gdata.each_with_index do |d,i|
+          g.data(pkey[i].utf8, d.map{|x| x.to_f})
+        end
       end
       # labelの配列をハッシュに変更
       hash_label = {}
       labels.each_with_index{|x,i| hash_label[i] = x}
     else
       # 縦横を入れ替える場合
-      labels.each_with_index do |label,i|
-        g.data(label,gdata.map{|x| x[i]})
+      if $theme[:normalize]
+        rates = gdata.map{|x| 100.0 / x.inject{|a,b| a+b}}
+        labels.each_with_index do |label,i|
+          d = gdata.map{|x| x[i]}
+          d.size.times do |k|
+            if rates[k].finite?
+              d[k] = d[k] * rates[k]
+            else
+              d[k] = 0.0
+            end
+          end
+          g.data(label.utf8, d)
+        end
+        g.x_axis_label = "割合 (%)"
+      else
+        labels.each_with_index do |label,i|
+          g.data(label.utf8,gdata.map{|x| x[i]})
+        end
       end
     end
     #ラベルを設定

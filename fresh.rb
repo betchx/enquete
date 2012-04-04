@@ -1,5 +1,5 @@
 
-$source = 'wakate.csv'
+$source = 'new-wakate.csv'
 $column = nil  # nilの場合は問い合わせる
 
 # 出力先
@@ -63,6 +63,7 @@ end
 $theme = {
   :font => './font/ipagp.ttf', #フォントファイル名
   :transpose => false, # 縦横入れ替え
+  :normalize => false,
   :font_color => 'black',
   :marker_color => 'black',
   :background_colors => 'white',
