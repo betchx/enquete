@@ -302,7 +302,7 @@ end
     out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
     out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
     out.print pkey.map{|val|
-      "\\multicolumn{1}{p{#{width}mm}}{#{val}\\hfill}"
+      "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
     }.join(' & ')
     out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
     out.puts '\endhead'
