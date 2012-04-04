@@ -217,17 +217,15 @@ if tex_out
   txt += "& #{nums.inject{|a,b| a+b}}\n"
   txt += "\\\\ \\hline\n\\end{tabular}\n"
   out.puts NKF.nkf('-Ws',txt)
-  g = apply_theme(Gruff::SideBar.new('2400x800')) # changed from Pie
-  # g.zero_degree = -90  # 上を原点に
-  # nums.each_with_index do |n,i|
-  #   g.data(pkey[i].utf8,[n])
-  # end
+  g = apply_theme(Gruff::SideBar.new('2400x1200')) # changed from Pie
   g.title = "#{question[key_id].utf8}#{"内訳"}"
   g.labels = hash_label
   g.data("回答数",nums,'blue')
-  g.hide_legend
+  g.hide_legend = true
+  g.x_axis_label = "有効回答数"
   g.write(gout(0))
   out.puts <<-NNN
+\\vfil
 \\begin{center}
 \\includegraphics[width=#{$theme[:width]}]{#{gout(0)}}
 \\end{center}
