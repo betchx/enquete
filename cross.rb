@@ -457,9 +457,12 @@ end
 
     gfile = gout(ic)
     g.write(gfile)
+    out.puts "\\begin{figure}[bp]"
     out.puts "\\begin{center}"
+    out.puts "\\vfil"
     out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
     out.puts "\\end{center}"
+    out.puts "\\end{figure}"
     out.puts "\\clearpage"
   else
     result.each do |r|
