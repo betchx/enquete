@@ -191,7 +191,16 @@ width = 300/(pkey.size+2)
 
 item_width = width * 1.5 + 10
 
+g = nil
+labels = nil
+gdata = nil
+hash_label = {}
 if tex_out
+  if $theme[:transpose]
+    pkey.each_with_index do |v,i|
+      hash_label[i] = v.utf8
+    end
+  end
   out.puts <<-KKK
 \\section{#{question[key_id]}#{"内訳".sjis}}
 \\begin{tabular}{c#{'r'*pkey.size}r} \\hline
@@ -208,13 +217,15 @@ if tex_out
   txt += "& #{nums.inject{|a,b| a+b}}\n"
   txt += "\\\\ \\hline\n\\end{tabular}\n"
   out.puts NKF.nkf('-Ws',txt)
-  g = apply_theme(Gruff::Pie.new('2400x800'))
-  g.zero_degree = -90  # 上を原点に
+  g = apply_theme(Gruff::SideBar.new('2400x800')) # changed from Pie
+  # g.zero_degree = -90  # 上を原点に
+  # nums.each_with_index do |n,i|
+  #   g.data(pkey[i].utf8,[n])
+  # end
   g.title = "#{question[key_id].utf8}#{"内訳"}"
-  #g.labels = {0 => ""}
-  nums.each_with_index do |n,i|
-    g.data(pkey[i].utf8,[n])
-  end
+  g.labels = hash_label
+  g.data("回答数",nums,'blue')
+  g.hide_legend
   g.write(gout(0))
   out.puts <<-NNN
 \\begin{center}
@@ -224,15 +235,6 @@ if tex_out
   NNN
 end
 
-g = nil
-labels = nil
-gdata = nil
-hash_label = {}
-if $theme[:transpose]
-  pkey.each_with_index do |v,i|
-    hash_label[i] = v
-  end
-end
 
 1.upto(ncol-1) do |ic|
   next if ic == key_id  # skip same one
