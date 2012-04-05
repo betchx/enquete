@@ -170,7 +170,10 @@ if tex_out
 \\author{#{author}}
 \\begin{document}
 \\maketitle
+\\vfil
+\\begin{multicols}{2}
 \\tableofcontents
+\\end{multicols}
 \\clearpage
   NNN
   out.puts txt.sjis
