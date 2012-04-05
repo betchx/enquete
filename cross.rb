@@ -57,7 +57,7 @@ question = f.shift
 head = question.clone
 
 ans = 0
-if $culumn.nil?
+if $column.nil?
   if ARGV.empty?
     puts "クロス集計に用いる列を指定してください"
     i = 0
