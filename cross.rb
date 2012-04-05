@@ -198,10 +198,8 @@ gdata = nil
 hash_label = {}
 if tex_out
   if $theme
-    if $theme[:transpose]
-      pkey.each_with_index do |v,i|
-        hash_label[i] = v.utf8
-      end
+    pkey.each_with_index do |v,i|
+      hash_label[i] = v.utf8
     end
   end
   out.puts <<-KKK
