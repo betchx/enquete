@@ -33,7 +33,6 @@ class Gruff::SideStackedBarFixed < Gruff::Base  #Gruff::SideBar
 
     @norm_data.each_with_index do |data_row, row_index|
       @d = @d.fill data_row[DATA_COLOR_INDEX]
-
       data_row[DATA_VALUES_INDEX].each_with_index do |data_point, point_index|
 
     	  ## using the original calcs from the stacked bar chart to get the difference between
@@ -57,7 +56,7 @@ class Gruff::SideStackedBarFixed < Gruff::Base  #Gruff::SideBar
         if difference > 0
           # 次のデータのために保存
           length[point_index] += difference
-          #height[point_index] += (data_point * @graph_width - 2)  # 不要
+          height[point_index] += (data_point * @graph_width - 2) 
           @d = @d.rectangle(left_x, left_y, right_x, right_y)
         end
 

@@ -171,6 +171,7 @@ if tex_out
 \\begin{document}
 \\maketitle
 \\vfil
+
 \\begin{multicols}{2}
 \\tableofcontents
 \\end{multicols}
@@ -219,10 +220,10 @@ if tex_out
   nums = data.map{|x| x.size}
   txt += nums.join('&')
   txt += "& #{nums.inject{|a,b| a+b}}\n"
-  txt += "\\\\ \\hline\n\\end{tabular}\n"
+    txt += "\\\\ \\hline\n\\end{tabular}\n"
   out.puts NKF.nkf('-Ws',txt)
   if $theme
-    g = apply_theme(Gruff::SideBar.new('2400x1200')) # changed from Pie
+    g = apply_theme(Gruff::SideStackedBarFixed.new('2400x1200')) # changed from Pie
     g.title = "#{question[key_id].utf8}#{"内訳"}"
     g.labels = hash_label
     g.data("回答数",nums,'blue')
