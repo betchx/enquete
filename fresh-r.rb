@@ -2,6 +2,9 @@
 $source = 'new-wakate.csv'
 $column = nil  # nilの場合は問い合わせる
 
+# true にすると表とリスト(自由意見を含む)を出力しなくなる．
+$no_table = false
+
 # 出力先
 # 拡張子がtexの場合はTeXで，それ以外はCSVで出力する．
 # nilなら引数から取得するか問い合わせる

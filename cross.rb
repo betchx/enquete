@@ -257,8 +257,12 @@ end
 
   if is_free
     if tex_out
-      # output 
+      # output
       out.puts "\\subsection{#{question[ic].sjis}}"
+      if $no_table  # omit output
+        out.puts "自由意見のため，グラフはありません".sjis
+        next
+      end
       out.puts '\begin{multicols}{3}'
     else
       out << empty_line  #空行
@@ -302,31 +306,20 @@ end
     gdata = pkey.map{|x| []}
 
     out.puts "\\subsection{#{question[ic]}}"
-    out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
-    out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
-    out.print pkey.map{|val|
-      "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
-    }.join(' & ')
-    out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
-    out.puts '\endhead'
+    unless $no_table
+      out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
+      out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
+      out.print pkey.map{|val|
+        "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
+      }.join(' & ')
+      out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
+      out.puts '\endhead'
+    end
   else
     out << empty_line  #空行
     head_line[0] = question[ic] #ヘッダ行の変更
     out << head_line  #ヘッダ行
   end
-
-=begin
-  # get total count to sort
-  totals = keys[ic].map do |key|
-    num = 0
-    body.each do |row|
-      num += 1 if row[ic] == key
-    end
-    [num,key]
-  end
-  sorted_pair = totals.sort_by{|a,b| a}
-  skey = sorted_pair.map{|a,b| b}
-=end
 
   res = keys.map do |key|
     arr = data.map do |chunk|
@@ -349,9 +342,11 @@ end
     # 複数意見のみ出力
     result.each do |r|
       break if r[-1] == 1
-      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
-      out.puts r[1..-1].join(' & ')
-      out.puts "\\\\ \\hline"
+      unless $no_table
+        out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
+        out.puts r[1..-1].join(' & ')
+        out.puts "\\\\ \\hline"
+      end
       labels << r[0].utf8
       gdata.each_with_index do |x,i|
         x << r[i+1].to_f
@@ -362,9 +357,11 @@ end
     if others.size == 1 then
       # 単独意見がひとつしかなければそのまま出力する
       r = others[0]
-      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
-      out.puts r[1..-1].join(' & ')
-      out.puts '\\\\ \hline'
+      unless $no_table
+        out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
+        out.puts r[1..-1].join(' & ')
+        out.puts '\\\\ \hline'
+      end
       labels << r[0].utf8
       gdata.each_with_index do |x,i|
         x << r[i+1].to_f
@@ -376,31 +373,35 @@ end
           other[i] += val[i]
         end
       end
-      out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{'その他'.sjis}} & "
-      out.puts other[1..-1].join(' & ')
-      out.puts "\\\\ \\hline"
+      unless $no_table
+        out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{'その他'.sjis}} & "
+        out.puts other[1..-1].join(' & ')
+        out.puts "\\\\ \\hline"
+      end
       labels << 'その他'
       gdata.each_with_index do |x,i|
         x << other[i+1].to_f
       end
     end
-    out.puts "\\end{longtable}"
-    if others.size > 1 then
-      out.puts "その他内訳：".sjis
-      out.puts "\\begin{multicols}{3}"
-      out.puts "\\begin{itemize}"
-      others.each do |val|
-        out.print '\item '
-        out.print val[0]
-        1.upto(ncol-1) do |i|
-          if val[i] == 1
-            out.puts "(#{head_line[i]})"
-            break
+    unless $no_table
+      out.puts "\\end{longtable}"
+      if others.size > 1 then
+        out.puts "その他内訳：".sjis
+        out.puts "\\begin{multicols}{3}"
+        out.puts "\\begin{itemize}"
+        others.each do |val|
+          out.print '\item '
+          out.print val[0]
+          1.upto(ncol-1) do |i|
+            if val[i] == 1
+              out.puts "(#{head_line[i]})"
+              break
+            end
           end
         end
+        out.puts "\\end{itemize}"
+        out.puts "\\end{multicols}"
       end
-      out.puts "\\end{itemize}"
-      out.puts "\\end{multicols}"
     end
 
     # グラフを出力する場合
