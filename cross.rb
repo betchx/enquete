@@ -227,7 +227,7 @@ if tex_out
     g.data("回答数",nums,'blue')
     g.hide_legend = true
     g.x_axis_label = "有効回答数"
-    g.write(gout(0))
+    g.write(gout(0)) unless $no_png_out
     out.puts <<-NNN
 \\vfil
 \\begin{center}
@@ -463,7 +463,7 @@ end
       g.labels = hash_label
 
       gfile = gout(ic)
-      g.write(gfile)
+      g.write(gfile) unless $no_png_out
       out.puts "\\begin{figure}[bp]"
       out.puts "\\begin{center}"
       out.puts "\\vfil"
