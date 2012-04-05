@@ -9,6 +9,7 @@ require 'gruff'
 require 'side_stacked_bar_fixed'
 
 def apply_theme(g)
+  raise unless $theme
   g.theme = $theme
   g.font = $theme[:font]
   # マージンは最小限に
@@ -196,9 +197,11 @@ labels = nil
 gdata = nil
 hash_label = {}
 if tex_out
-  if $theme[:transpose]
-    pkey.each_with_index do |v,i|
-      hash_label[i] = v.utf8
+  if $theme
+    if $theme[:transpose]
+      pkey.each_with_index do |v,i|
+        hash_label[i] = v.utf8
+      end
     end
   end
   out.puts <<-KKK
@@ -217,20 +220,22 @@ if tex_out
   txt += "& #{nums.inject{|a,b| a+b}}\n"
   txt += "\\\\ \\hline\n\\end{tabular}\n"
   out.puts NKF.nkf('-Ws',txt)
-  g = apply_theme(Gruff::SideBar.new('2400x1200')) # changed from Pie
-  g.title = "#{question[key_id].utf8}#{"内訳"}"
-  g.labels = hash_label
-  g.data("回答数",nums,'blue')
-  g.hide_legend = true
-  g.x_axis_label = "有効回答数"
-  g.write(gout(0))
-  out.puts <<-NNN
+  if $theme
+    g = apply_theme(Gruff::SideBar.new('2400x1200')) # changed from Pie
+    g.title = "#{question[key_id].utf8}#{"内訳"}"
+    g.labels = hash_label
+    g.data("回答数",nums,'blue')
+    g.hide_legend = true
+    g.x_axis_label = "有効回答数"
+    g.write(gout(0))
+    out.puts <<-NNN
 \\vfil
 \\begin{center}
 \\includegraphics[width=#{$theme[:width]}]{#{gout(0)}}
 \\end{center}
-\\clearpage
-  NNN
+    NNN
+  end
+  out.puts "\\clearpage"
 end
 
 
@@ -397,72 +402,77 @@ end
       out.puts "\\end{itemize}"
       out.puts "\\end{multicols}"
     end
-    rows = $theme[:transpose]?(pkey.size):(labels.size)
-    hbase = $theme[:normalize]?350:250
-    g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{hbase+50*rows}"))
-    g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
-    g.sort = false
-    # add graph
-    unless $theme[:transpose]
-      # 縦横を入れ替えない場合
 
-      if $theme[:normalize]
-        sums = labels.map{0}
-        labels.size.times do |i|
-          sums[i] = gdata.inject(0){|a,v| a+v[i]}
-        end
-        rates = sums.map{|x| (x==0.0)?0:(100.0 / x)}
-        gdata.each_with_index do |d,i|
-          r = Array.new(d.size)
-          rates.each_with_index do |y,k|
-            r[k] = d[k] * y
+    # グラフを出力する場合
+    if $theme
+      rows = $theme[:transpose]?(pkey.size):(labels.size)
+      hbase = $theme[:normalize]?350:250
+      g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{hbase+50*rows}"))
+      g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
+      g.sort = false
+      # add graph
+      unless $theme[:transpose]
+        # 縦横を入れ替えない場合
+
+        if $theme[:normalize]
+          sums = labels.map{0}
+          labels.size.times do |i|
+            sums[i] = gdata.inject(0){|a,v| a+v[i]}
           end
-          g.data(pkey[i].utf8, r)
-        end
-        g.x_axis_label = "割合 (%)"
-      else
-        gdata.each_with_index do |d,i|
-          g.data(pkey[i].utf8, d.map{|x| x.to_f})
-        end
-      end
-      # labelの配列をハッシュに変更
-      hash_label = {}
-      labels.each_with_index{|x,i| hash_label[i] = x}
-    else
-      # 縦横を入れ替える場合
-      if $theme[:normalize]
-        rates = gdata.map{|x| 100.0 / x.inject{|a,b| a+b}}
-        labels.each_with_index do |label,i|
-          d = gdata.map{|x| x[i]}
-          d.size.times do |k|
-            if rates[k].finite?
-              d[k] = d[k] * rates[k]
-            else
-              d[k] = 0.0
+          rates = sums.map{|x| (x==0.0)?0:(100.0 / x)}
+          gdata.each_with_index do |d,i|
+            r = Array.new(d.size)
+            rates.each_with_index do |y,k|
+              r[k] = d[k] * y
             end
+            g.data(pkey[i].utf8, r)
           end
-          g.data(label.utf8, d)
+          g.x_axis_label = "割合 (%)"
+        else
+          gdata.each_with_index do |d,i|
+            g.data(pkey[i].utf8, d.map{|x| x.to_f})
+          end
         end
-        g.x_axis_label = "割合 (%)"
+        # labelの配列をハッシュに変更
+        hash_label = {}
+        labels.each_with_index{|x,i| hash_label[i] = x}
       else
-        labels.each_with_index do |label,i|
-          g.data(label.utf8,gdata.map{|x| x[i]})
+        # 縦横を入れ替える場合
+        if $theme[:normalize]
+          rates = gdata.map{|x| 100.0 / x.inject{|a,b| a+b}}
+          labels.each_with_index do |label,i|
+            d = gdata.map{|x| x[i]}
+            d.size.times do |k|
+              if rates[k].finite?
+                d[k] = d[k] * rates[k]
+              else
+                d[k] = 0.0
+              end
+            end
+            g.data(label.utf8, d)
+          end
+          g.x_axis_label = "割合 (%)"
+        else
+          labels.each_with_index do |label,i|
+            g.data(label.utf8,gdata.map{|x| x[i]})
+          end
         end
       end
-    end
-    #ラベルを設定
-    g.labels = hash_label
+      #ラベルを設定
+      g.labels = hash_label
 
-    gfile = gout(ic)
-    g.write(gfile)
-    out.puts "\\begin{figure}[bp]"
-    out.puts "\\begin{center}"
-    out.puts "\\vfil"
-    out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
-    out.puts "\\end{center}"
-    out.puts "\\end{figure}"
+      gfile = gout(ic)
+      g.write(gfile)
+      out.puts "\\begin{figure}[bp]"
+      out.puts "\\begin{center}"
+      out.puts "\\vfil"
+      out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
+      out.puts "\\end{center}"
+      out.puts "\\end{figure}"
+    end
     out.puts "\\clearpage"
   else
+    # CSV output
     result.each do |r|
       out << r
     end
