@@ -252,6 +252,7 @@ end
   end
   if tex_out
     if sec_num.include?(ic)
+      out.puts "\\clearpage" if $no_table
       out.puts "\\section{#{sec[ic].sjis}}"
     end
   end
@@ -465,14 +466,14 @@ end
 
       gfile = gout(ic)
       g.write(gfile) unless $no_png_out
-      out.puts "\\begin{figure}[bp]"
+      out.puts "\\begin{figure}[bp]" unless $no_table
       out.puts "\\begin{center}"
       out.puts "\\vfil"
       out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
       out.puts "\\end{center}"
-      out.puts "\\end{figure}"
+      out.puts "\\end{figure}" unless $no_table
     end
-    out.puts "\\clearpage"
+    out.puts "\\clearpage" unless $no_table
   else
     # CSV output
     result.each do |r|
