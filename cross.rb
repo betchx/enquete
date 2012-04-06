@@ -52,6 +52,7 @@ else
   source = arg_or_query("enquate csv file", "enquate.csv","soure file")
 end
 
+$stderr.puts "#{source.utf8}から読み込みます"
 f = CSV.open(source,'r')
 question = f.shift
 head = question.clone
@@ -81,6 +82,8 @@ else
 end
 key_id = ans
 
+$stderr.puts sprintf("Q%03d「%s」により分析します.",
+                     key_id, question[key_id].utf8)
 
 # 列数
 ncol = question.size
@@ -105,8 +108,10 @@ all_key = [nil]  # １列目は処理しない．
 1.upto(ncol-1) do |ic|
   all_key << body.map{|x| x[ic]}.compact.map{|x|
     x.split(/,/).map{|s| s.strip}
-  }.flatten.sort.uniq.reject{|x| x =~ /^----/}
+  }.flatten.sort.uniq.reject{|x| x =~ /^----/}# ----で始まるものは使わない
 end
+
+$stderr.puts "アンケートデータの読み込み中"
 
 # クロス集計列ごとにデータを分類
 # dataは3次元配列になっている
@@ -120,7 +125,14 @@ end
 #output
 out_file = $output
 out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output") if out_file.nil?
+
+$stderr.puts "#{out_file.utf8}に結果を出力します．"
+
+# TeX出力かどうかを判定
 tex_out = out_file =~ /\.tex$/i
+
+$stderr.puts "初期化中"
+
 # workdir for graphic
 $graph_dir = nil
 if tex_out
@@ -202,6 +214,7 @@ labels = nil
 gdata = nil
 hash_label = {}
 if tex_out
+  $stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
   if $theme
     pkey.each_with_index do |v,i|
       hash_label[i] = v.utf8
