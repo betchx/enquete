@@ -7,6 +7,7 @@ require 'nkf'
 require 'rubygems'
 require 'gruff'
 require 'side_stacked_bar_fixed'
+require 'texout'
 
 def apply_theme(g)
   raise unless $theme
@@ -167,30 +168,9 @@ if tex_out
   title = $title || "アンケート集計結果"
   author = $author || "土木学会中部支部"
 
-  out = open(out_file,"w")
+  out = TexOut::A3.new(out_file, $theme)  #open(out_file,"w")
   # output header
-  txt = <<-"NNN"
-\\documentclass[a3paper,landscape]{jsarticle}
-\\usepackage[left=1.5cm,top=1cm,bottom=2cm,right=1cm]{geometry}
-\\usepackage{longtable}
-\\usepackage[dvipdfm]{graphicx}
-\\usepackage{multicol}
-\\title{#{title}}
-\\date{\\today}
-\\author{#{author}}
-\\begin{document}
-\\pagenumbering{roman}
-\\maketitle
-\\vfil
-
-\\begin{multicols}{2}
-\\tableofcontents
-\\end{multicols}
-\\clearpage
-\\pagenumbering{arabic}
-\\setcounter{page}{1}
-  NNN
-  out.puts txt.sjis
+  out.header(title, author)
 else
   out_io = open(out_file,"w")
   out = CSV::Writer.generate(out_io)
