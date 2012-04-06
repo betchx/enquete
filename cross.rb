@@ -177,11 +177,17 @@ else
   out = CSV::Writer.generate(out_io)
   class << out
     # additional initalizer
-    def setup(pkeys)
+    def setup(pkeys,kid,io,questions)
       @pkey = pkeys
+      @key_id = kid
       @head_line = ["",pkeys,"合計".sjis,"\n"].flatten
+      @io = io
+      @question = questions
     end
-    attr_reader :head_line, :empty_line
+    attr_reader :head_line, :empty_line, :question, :key_id
+    def out
+      self
+    end
 
     def header(ttl, ath)
       @empty_line = head_line.map{ "" }
@@ -189,13 +195,40 @@ else
       #      out << ath
       #      out << []
     end
-    def key(pkey)
-      #data = yield
+    def key(pkey,num)
+      # do nothing now
+    end
+    def comments(ic)
+      out << empty_line  #空行
+      out << ["自由意見：".sjis,question[ic]]
+      out << [question[key_id], "回答\n".sjis]
+      yield Adder.new(self, :add_data)
+    end
+
+    def add_data(*args)
+      out << args.flatten.compact
+    end
+
+    def table(ic, result)
+      out << empty_line  #空行
+      head_line[0] = question[ic] #ヘッダ行の変更
+      out << head_line  #ヘッダ行
+      result.each do |x|
+        out << x
+      end
+    end
+    alias :original_close :close
+    def close
+      original_close
+      @io.close
+    end
+
+    def section_check(ic)
       # do nothing now
     end
   end
 
-  out.setup(pkey)
+  out.setup(pkey,key_id,out_io,question)
 end
 
 # output header
@@ -203,9 +236,7 @@ out.header(title, author)
 
 # output primary keys
 $stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
-out.key(pkey) do
-  data.map{|x| x.size}
-end
+out.key(pkey, data.map{|x| x.size} )
 
 ## 削除予定
 g = nil
@@ -218,8 +249,6 @@ item_width = tex_out && out.item_width
 empty_line = tex_out || out.empty_line
 
 ##
-
-
 
 
 skips = $skips || []
@@ -238,76 +267,19 @@ skips = $skips || []
   FREE_TAG.each do |re|
     is_free = true if toi =~ re
   end
-  if tex_out
-    if sec_num.include?(ic)
-      out.puts "\\clearpage" if $no_table
-      out.puts "\\section{#{sec[ic].sjis}}"
-    end
-  end
+
+  out.section_check(ic)
+
 
   if is_free
-    if tex_out
-      # output
-      out.puts "\\subsection{#{question[ic].sjis}}"
-      if $no_table  # omit output
-        out.puts "自由意見のため，グラフはありません".sjis
-        next
-      end
-      out.puts '\begin{multicols}{3}'
-    else
-      out << empty_line  #空行
-      out << ["自由意見：".sjis,question[ic]]
-      out << [question[key_id], "回答\n".sjis]
-    end
-
+    out.comments(ic) do |writer|
     # loop
     pkey.size.times do |ikey|
-      res = [pkey[ikey],""]
       target = data[ikey].map{|x| x[ic]}.compact
-      next if target.empty?
-      if tex_out
-        out.puts "\\paragraph{#{res[0]}}"
-        out.puts '\begin{itemize}'
-      end
-      target.each do |iken|
-        res[1] =  iken
-        if tex_out
-          out.puts "\\item #{iken}"
-        else
-          out << res
-        end
-      end
-      if tex_out
-        out.puts "\\end{itemize}"
-      end
+      writer.add(pkey[ikey],target) unless target.empty?
     end
-    if tex_out
-      out.puts '\end{multicols}'
-      out.puts '\\clearpage'
-      #out.puts "\\end{tabular}"
     end
   else
-    if tex_out
-      # graph
-      labels = []  #reset
-      i = 0
-      gdata = pkey.map{|x| []}
-
-      out.puts "\\subsection{#{question[ic]}}"
-      unless $no_table
-        out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
-        out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
-        out.print pkey.map{|val|
-          "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
-        }.join(' & ')
-        out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
-        out.puts '\endhead'
-      end
-    else
-      out << empty_line  #空行
-      head_line[0] = question[ic] #ヘッダ行の変更
-      out << head_line  #ヘッダ行
-    end
 
     res = keys.map do |key|
       arr = data.map do |chunk|
@@ -325,73 +297,10 @@ skips = $skips || []
     # sort
     result =  res.sort_by{|x| -x[-1]}
 
-    #output
-    if tex_out
-      # 複数意見のみ出力
-      result.each do |r|
-        break if r[-1] == 1
-        unless $no_table
-          out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
-          out.puts r[1..-1].join(' & ')
-          out.puts "\\\\ \\hline"
-        end
-        labels << r[0].utf8
-        gdata.each_with_index do |x,i|
-          x << r[i+1].to_f
-        end
-      end
-      # 単独意見を抽出
-      others = result.select{|x| x[-1]==1}
-      if others.size == 1 then
-        # 単独意見がひとつしかなければそのまま出力する
-        r = others[0]
-        unless $no_table
-          out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
-          out.puts r[1..-1].join(' & ')
-          out.puts '\\\\ \hline'
-        end
-        labels << r[0].utf8
-        gdata.each_with_index do |x,i|
-          x << r[i+1].to_f
-        end
-      elsif others.size > 1 then
-        other = others[0].map{0}
-        others.each do |val|
-          1.upto(other.size-1) do |i|
-            other[i] += val[i]
-          end
-        end
-        unless $no_table
-          out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{'その他'.sjis}} & "
-          out.puts other[1..-1].join(' & ')
-          out.puts "\\\\ \\hline"
-        end
-        labels << 'その他'
-        gdata.each_with_index do |x,i|
-          x << other[i+1].to_f
-        end
-      end
-      unless $no_table
-        out.puts "\\end{longtable}"
-        if others.size > 1 then
-          out.puts "その他内訳：".sjis
-          out.puts "\\begin{multicols}{3}"
-          out.puts "\\begin{itemize}"
-          others.each do |val|
-            out.print '\item '
-            out.print val[0]
-            1.upto(ncol-1) do |i|
-              if val[i] == 1
-                out.puts "(#{head_line[i]})"
-                break
-              end
-            end
-          end
-          out.puts "\\end{itemize}"
-          out.puts "\\end{multicols}"
-        end
-      end
+    # output
+    out.table(ic,result)
 
+=begin
       # グラフを出力する場合
       if $theme
         rows = $theme[:transpose]?(pkey.size):(labels.size)
@@ -399,6 +308,7 @@ skips = $skips || []
         g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{hbase+50*rows}"))
         g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
         g.sort = false
+        @row = 
         # add graph
         unless $theme[:transpose]
           # 縦横を入れ替えない場合
@@ -465,16 +375,11 @@ skips = $skips || []
         out << r
       end
     end
+=end
 
   end
 end
 
-if tex_out
-  # output footer
-  out.puts "\\end{document}"
-  out.close
-else
-  out_io.close
-end
+out.close
 
 
