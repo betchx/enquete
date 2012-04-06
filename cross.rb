@@ -9,22 +9,6 @@ require 'gruff'
 require 'side_stacked_bar_fixed'
 require 'texout'
 
-def apply_theme(g)
-  raise unless $theme
-  g.theme = $theme
-  g.font = $theme[:font]
-  # マージンは最小限に
-  g.bottom_margin = 10
-  g.top_margin = 0
-  g.left_margin = 0
-  g.right_margin = 10
-  g.title_font_size = $theme[:title_font_size] || 20
-  g.legend_font_size = $theme[:legend_font_size]||10
-  g.legend_box_size = $theme[:legend_box_size] || g.legend_font_size
-  g.legend_margin = $theme[:legend_margin] || g.legend_font_size/4
-  g.marker_font_size = $theme[:marker_font_size]||10
-  g
-end
 
 def utf8(str)
   str.utf8
@@ -40,6 +24,26 @@ class String
     NKF.nkf("-s",self)
   end
 end
+
+
+def apply_theme(g)
+  raise unless $theme
+  theme = $theme
+  g.theme = theme
+  g.font = theme[:font]
+  # マージンは最小限に
+  g.bottom_margin = 10
+  g.top_margin = 0
+  g.left_margin = 0
+  g.right_margin = 10
+  g.title_font_size = theme[:title_font_size] || 20
+  g.legend_font_size = theme[:legend_font_size]||10
+  g.legend_box_size = theme[:legend_box_size] || g.legend_font_size
+  g.legend_margin = theme[:legend_margin] || g.legend_font_size/4
+  g.marker_font_size = theme[:marker_font_size]||10
+  g
+end
+
 
 # 設定を記述したファイルを指定する．
 raise "設定ファイルを指定してください．" if ARGV.empty?
@@ -157,91 +161,66 @@ else
     sec[key] = value
   end
 end
-sec_num = sec.keys.sort
 
 out = nil
+
 # 最後の改行はEXCELで開いたときにヘッダをわかりやすくするため
 head_line = ["",pkey,"合計".sjis,"\n"].flatten
-empty_line = head_line.map{ "" }
 
 title = $title || "アンケート集計結果"
 author = $author || "土木学会中部支部"
 
 if tex_out
-  out = TexOut::A3.new(out_file, $theme)
+  out = TexOut::A3.new(out_file, question, key_id, sec, $theme)
 else
   out_io = open(out_file,"w")
   out = CSV::Writer.generate(out_io)
-
   class << out
+    # additional initalizer
+    def setup(pkeys)
+      @pkey = pkeys
+      @head_line = ["",pkeys,"合計".sjis,"\n"].flatten
+    end
+    attr_reader :head_line, :empty_line
+
     def header(ttl, ath)
-#      out << ttl
-#      out << ath
-#      out << []
+      @empty_line = head_line.map{ "" }
+      #      out << ttl
+      #      out << ath
+      #      out << []
+    end
+    def key(pkey)
+      #data = yield
+      # do nothing now
     end
   end
+
+  out.setup(pkey)
 end
 
 # output header
 out.header(title, author)
 
-=begin
-# debug
-dbout = CSV.open("keys.csv","w")
-all_key.each_with_index do |key,i|
-  dbout << [i,key].flatten
+# output primary keys
+$stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
+out.key(pkey) do
+  data.map{|x| x.size}
 end
-dbout.close
-=end
 
-width = 300/(pkey.size+2)
-
-item_width = width * 1.5 + 10
-
+## 削除予定
 g = nil
 labels = nil
 gdata = nil
 hash_label = {}
-if tex_out
-  $stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
-  if $theme
-    pkey.each_with_index do |v,i|
-      hash_label[i] = v.utf8
-    end
-  end
-  out.puts <<-KKK
-\\section{#{question[key_id]}#{"内訳".sjis}}
-\\begin{tabular}{c#{'r'*pkey.size}r} \\hline
-\\multicolumn{1}{p{#{item_width}mm}}{} & 
-  KKK
-  out.puts pkey.map{|val|
-    "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
-  }.join(' & ')
-  txt = '& \multicolumn{1}{p{1cm}}{合計}\\\\ \hline'
-  txt += "\n"
-  txt += "回答数&"
-  nums = data.map{|x| x.size}
-  txt += nums.join('&')
-  txt += "& #{nums.inject{|a,b| a+b}}\n"
-    txt += "\\\\ \\hline\n\\end{tabular}\n"
-  out.puts NKF.nkf('-Ws',txt)
-  if $theme
-    g = apply_theme(Gruff::SideStackedBarFixed.new('2400x1200')) # changed from Pie
-    g.title = "#{question[key_id].utf8}#{"内訳"}"
-    g.labels = hash_label
-    g.data("回答数",nums,'blue')
-    g.hide_legend = true
-    g.x_axis_label = "有効回答数"
-    g.write(gout(0)) unless $no_png_out
-    out.puts <<-NNN
-\\vfil
-\\begin{center}
-\\includegraphics[width=#{$theme[:width]}]{#{gout(0)}}
-\\end{center}
-    NNN
-  end
-  out.puts "\\clearpage"
-end
+sec_num = tex_out && out.sec_num
+width = tex_out && out.width
+item_width = tex_out && out.item_width
+empty_line = tex_out || out.empty_line
+
+##
+
+
+
 
 skips = $skips || []
 
@@ -470,7 +449,6 @@ skips = $skips || []
         end
         #ラベルを設定
         g.labels = hash_label
-
         gfile = gout(ic)
         g.write(gfile) unless $no_png_out
         out.puts "\\begin{figure}[bp]" unless $no_table
