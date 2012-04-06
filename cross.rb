@@ -238,9 +238,14 @@ if tex_out
   out.puts "\\clearpage"
 end
 
+skips = $skips || []
 
 1.upto(ncol-1) do |ic|
   next if ic == key_id  # skip same one
+
+  # skip if specified
+  next if skips.include?(ic)
+
   $stderr.puts sprintf("処理中：Q%03d :%s",ic, question[ic].utf8)
   keys = all_key[ic].clone
   toi = utf8(question[ic])
