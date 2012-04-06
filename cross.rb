@@ -446,7 +446,7 @@ skips = $skips || []
       else
         # 縦横を入れ替える場合
         if $theme[:normalize]
-          rates = gdata.map{|x| 100.0 / x.inject{|a,b| a+b}}
+          rates = gdata.map{|x| 100.0 / x.inject(0.0){|a,b| a+b}}
           labels.each_with_index do |label,i|
             d = gdata.map{|x| x[i]}
             d.size.times do |k|
