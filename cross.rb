@@ -167,6 +167,7 @@ if tex_out
 \\date{\\today}
 \\author{#{author}}
 \\begin{document}
+\\pagenumbering{roman}
 \\maketitle
 \\vfil
 
@@ -174,6 +175,8 @@ if tex_out
 \\tableofcontents
 \\end{multicols}
 \\clearpage
+\\pagenumbering{arabic}
+\\setcounter{page}{1}
   NNN
   out.puts txt.sjis
 else
