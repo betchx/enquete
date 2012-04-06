@@ -319,185 +319,185 @@ skips = $skips || []
       #out.puts "\\end{tabular}"
     end
   else
-  if tex_out
-    # graph
-    labels = []  #reset
-    i = 0
-    gdata = pkey.map{|x| []}
+    if tex_out
+      # graph
+      labels = []  #reset
+      i = 0
+      gdata = pkey.map{|x| []}
 
-    out.puts "\\subsection{#{question[ic]}}"
-    unless $no_table
-      out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
-      out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
-      out.print pkey.map{|val|
-        "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
-      }.join(' & ')
-      out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
-      out.puts '\endhead'
-    end
-  else
-    out << empty_line  #空行
-    head_line[0] = question[ic] #ヘッダ行の変更
-    out << head_line  #ヘッダ行
-  end
-
-  res = keys.map do |key|
-    arr = data.map do |chunk|
-      chunk.select{|x| check(x[ic], key)}.size
-    end
-    arr.unshift key
-    arr
-  end
-
-  # calculate total
-  res.each do |arr|
-    arr << arr[1..-1].inject{|r,x| x + r}
-  end
-
-  # sort
-  result =  res.sort_by{|x| -x[-1]}
-
-  #output
-  if tex_out
-    # 複数意見のみ出力
-    result.each do |r|
-      break if r[-1] == 1
+      out.puts "\\subsection{#{question[ic]}}"
       unless $no_table
-        out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
-        out.puts r[1..-1].join(' & ')
-        out.puts "\\\\ \\hline"
+        out.puts '\begin{longtable}{c'+'r'*pkey.size+'r} \hline'
+        out.print "\\multicolumn{1}{p{#{item_width}mm}}{} & "
+        out.print pkey.map{|val|
+          "\\multicolumn{1}{p{#{width}mm}}{#{val}}"
+        }.join(' & ')
+        out.puts '& \multicolumn{1}{p{1cm}}{合計}\\\\ \\hline'.sjis
+        out.puts '\endhead'
       end
-      labels << r[0].utf8
-      gdata.each_with_index do |x,i|
-        x << r[i+1].to_f
-      end
+    else
+      out << empty_line  #空行
+      head_line[0] = question[ic] #ヘッダ行の変更
+      out << head_line  #ヘッダ行
     end
-    # 単独意見を抽出
-    others = result.select{|x| x[-1]==1}
-    if others.size == 1 then
-      # 単独意見がひとつしかなければそのまま出力する
-      r = others[0]
-      unless $no_table
-        out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
-        out.puts r[1..-1].join(' & ')
-        out.puts '\\\\ \hline'
+
+    res = keys.map do |key|
+      arr = data.map do |chunk|
+        chunk.select{|x| check(x[ic], key)}.size
       end
-      labels << r[0].utf8
-      gdata.each_with_index do |x,i|
-        x << r[i+1].to_f
-      end
-    elsif others.size > 1 then
-      other = others[0].map{0}
-      others.each do |val|
-        1.upto(other.size-1) do |i|
-          other[i] += val[i]
+      arr.unshift key
+      arr
+    end
+
+    # calculate total
+    res.each do |arr|
+      arr << arr[1..-1].inject{|r,x| x + r}
+    end
+
+    # sort
+    result =  res.sort_by{|x| -x[-1]}
+
+    #output
+    if tex_out
+      # 複数意見のみ出力
+      result.each do |r|
+        break if r[-1] == 1
+        unless $no_table
+          out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
+          out.puts r[1..-1].join(' & ')
+          out.puts "\\\\ \\hline"
+        end
+        labels << r[0].utf8
+        gdata.each_with_index do |x,i|
+          x << r[i+1].to_f
         end
       end
-      unless $no_table
-        out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{'その他'.sjis}} & "
-        out.puts other[1..-1].join(' & ')
-        out.puts "\\\\ \\hline"
-      end
-      labels << 'その他'
-      gdata.each_with_index do |x,i|
-        x << other[i+1].to_f
-      end
-    end
-    unless $no_table
-      out.puts "\\end{longtable}"
-      if others.size > 1 then
-        out.puts "その他内訳：".sjis
-        out.puts "\\begin{multicols}{3}"
-        out.puts "\\begin{itemize}"
+      # 単独意見を抽出
+      others = result.select{|x| x[-1]==1}
+      if others.size == 1 then
+        # 単独意見がひとつしかなければそのまま出力する
+        r = others[0]
+        unless $no_table
+          out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{r[0]}} & "
+          out.puts r[1..-1].join(' & ')
+          out.puts '\\\\ \hline'
+        end
+        labels << r[0].utf8
+        gdata.each_with_index do |x,i|
+          x << r[i+1].to_f
+        end
+      elsif others.size > 1 then
+        other = others[0].map{0}
         others.each do |val|
-          out.print '\item '
-          out.print val[0]
-          1.upto(ncol-1) do |i|
-            if val[i] == 1
-              out.puts "(#{head_line[i]})"
-              break
-            end
+          1.upto(other.size-1) do |i|
+            other[i] += val[i]
           end
         end
-        out.puts "\\end{itemize}"
-        out.puts "\\end{multicols}"
+        unless $no_table
+          out.print "\\multicolumn{1}{p{#{item_width}mm}}{#{'その他'.sjis}} & "
+          out.puts other[1..-1].join(' & ')
+          out.puts "\\\\ \\hline"
+        end
+        labels << 'その他'
+        gdata.each_with_index do |x,i|
+          x << other[i+1].to_f
+        end
       end
-    end
-
-    # グラフを出力する場合
-    if $theme
-      rows = $theme[:transpose]?(pkey.size):(labels.size)
-      hbase = $theme[:normalize]?350:250
-      g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{hbase+50*rows}"))
-      g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
-      g.sort = false
-      # add graph
-      unless $theme[:transpose]
-        # 縦横を入れ替えない場合
-
-        if $theme[:normalize]
-          sums = labels.map{0}
-          labels.size.times do |i|
-            sums[i] = gdata.inject(0){|a,v| a+v[i]}
-          end
-          rates = sums.map{|x| (x==0.0)?0:(100.0 / x)}
-          gdata.each_with_index do |d,i|
-            r = Array.new(d.size)
-            rates.each_with_index do |y,k|
-              r[k] = d[k] * y
-            end
-            g.data(pkey[i].utf8, r)
-          end
-          g.x_axis_label = "割合 (%)"
-        else
-          gdata.each_with_index do |d,i|
-            g.data(pkey[i].utf8, d.map{|x| x.to_f})
-          end
-        end
-        # labelの配列をハッシュに変更
-        hash_label = {}
-        labels.each_with_index{|x,i| hash_label[i] = x}
-      else
-        # 縦横を入れ替える場合
-        if $theme[:normalize]
-          rates = gdata.map{|x| 100.0 / x.inject(0.0){|a,b| a+b}}
-          labels.each_with_index do |label,i|
-            d = gdata.map{|x| x[i]}
-            d.size.times do |k|
-              if rates[k].finite?
-                d[k] = d[k] * rates[k]
-              else
-                d[k] = 0.0
+      unless $no_table
+        out.puts "\\end{longtable}"
+        if others.size > 1 then
+          out.puts "その他内訳：".sjis
+          out.puts "\\begin{multicols}{3}"
+          out.puts "\\begin{itemize}"
+          others.each do |val|
+            out.print '\item '
+            out.print val[0]
+            1.upto(ncol-1) do |i|
+              if val[i] == 1
+                out.puts "(#{head_line[i]})"
+                break
               end
             end
-            g.data(label.utf8, d)
           end
-          g.x_axis_label = "割合 (%)"
-        else
-          labels.each_with_index do |label,i|
-            g.data(label.utf8,gdata.map{|x| x[i]})
-          end
+          out.puts "\\end{itemize}"
+          out.puts "\\end{multicols}"
         end
       end
-      #ラベルを設定
-      g.labels = hash_label
 
-      gfile = gout(ic)
-      g.write(gfile) unless $no_png_out
-      out.puts "\\begin{figure}[bp]" unless $no_table
-      out.puts "\\begin{center}"
-      out.puts "\\vfil"
-      out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
-      out.puts "\\end{center}"
-      out.puts "\\end{figure}" unless $no_table
+      # グラフを出力する場合
+      if $theme
+        rows = $theme[:transpose]?(pkey.size):(labels.size)
+        hbase = $theme[:normalize]?350:250
+        g =apply_theme(Gruff::SideStackedBarFixed.new("2400x#{hbase+50*rows}"))
+        g.title = (false)?("Question # #{ic}"):(question[ic].utf8)
+        g.sort = false
+        # add graph
+        unless $theme[:transpose]
+          # 縦横を入れ替えない場合
+
+          if $theme[:normalize]
+            sums = labels.map{0}
+            labels.size.times do |i|
+              sums[i] = gdata.inject(0){|a,v| a+v[i]}
+            end
+            rates = sums.map{|x| (x==0.0)?0:(100.0 / x)}
+            gdata.each_with_index do |d,i|
+              r = Array.new(d.size)
+              rates.each_with_index do |y,k|
+                r[k] = d[k] * y
+              end
+              g.data(pkey[i].utf8, r)
+            end
+            g.x_axis_label = "割合 (%)"
+          else
+            gdata.each_with_index do |d,i|
+              g.data(pkey[i].utf8, d.map{|x| x.to_f})
+            end
+          end
+          # labelの配列をハッシュに変更
+          hash_label = {}
+          labels.each_with_index{|x,i| hash_label[i] = x}
+        else
+          # 縦横を入れ替える場合
+          if $theme[:normalize]
+            rates = gdata.map{|x| 100.0 / x.inject(0.0){|a,b| a+b}}
+            labels.each_with_index do |label,i|
+              d = gdata.map{|x| x[i]}
+              d.size.times do |k|
+                if rates[k].finite?
+                  d[k] = d[k] * rates[k]
+                else
+                  d[k] = 0.0
+                end
+              end
+              g.data(label.utf8, d)
+            end
+            g.x_axis_label = "割合 (%)"
+          else
+            labels.each_with_index do |label,i|
+              g.data(label.utf8,gdata.map{|x| x[i]})
+            end
+          end
+        end
+        #ラベルを設定
+        g.labels = hash_label
+
+        gfile = gout(ic)
+        g.write(gfile) unless $no_png_out
+        out.puts "\\begin{figure}[bp]" unless $no_table
+        out.puts "\\begin{center}"
+        out.puts "\\vfil"
+        out.puts "\\includegraphics[width=#{$theme[:width]||'10in'}]{#{gfile}}"
+        out.puts "\\end{center}"
+        out.puts "\\end{figure}" unless $no_table
+      end
+      out.puts "\\clearpage" unless $no_table
+    else
+      # CSV output
+      result.each do |r|
+        out << r
+      end
     end
-    out.puts "\\clearpage" unless $no_table
-  else
-    # CSV output
-    result.each do |r|
-      out << r
-    end
-  end
 
   end
 end
