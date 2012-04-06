@@ -147,7 +147,8 @@ end
 sec_num = sec.keys.sort
 
 out = nil
-head_line = ["",pkey,"Total\n"].flatten
+# 最後の改行はEXCELで開いたときにヘッダをわかりやすくするため
+head_line = ["",pkey,"合計".sjis,"\n"].flatten
 empty_line = head_line.map{ "" }
 
 if tex_out
