@@ -318,9 +318,7 @@ skips = $skips || []
       out.puts '\\clearpage'
       #out.puts "\\end{tabular}"
     end
-    next  # Go to Next question
-  end
-
+  else
   if tex_out
     # graph
     labels = []  #reset
@@ -501,6 +499,7 @@ skips = $skips || []
     end
   end
 
+  end
 end
 
 if tex_out
