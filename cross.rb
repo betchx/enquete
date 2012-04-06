@@ -152,11 +152,8 @@ head_line = ["",pkey,"合計".sjis,"\n"].flatten
 empty_line = head_line.map{ "" }
 
 if tex_out
-  title = "アンケート集計結果"
-  title = $title if $title
-  author = "土木学会中部支部"
-  author = $author if $author
-
+  title = $title || "アンケート集計結果"
+  author = $author || "土木学会中部支部"
 
   out = open(out_file,"w")
   # output header
