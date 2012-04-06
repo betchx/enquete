@@ -164,17 +164,26 @@ out = nil
 head_line = ["",pkey,"合計".sjis,"\n"].flatten
 empty_line = head_line.map{ "" }
 
-if tex_out
-  title = $title || "アンケート集計結果"
-  author = $author || "土木学会中部支部"
+title = $title || "アンケート集計結果"
+author = $author || "土木学会中部支部"
 
-  out = TexOut::A3.new(out_file, $theme)  #open(out_file,"w")
-  # output header
-  out.header(title, author)
+if tex_out
+  out = TexOut::A3.new(out_file, $theme)
 else
   out_io = open(out_file,"w")
   out = CSV::Writer.generate(out_io)
+
+  class << out
+    def header(ttl, ath)
+#      out << ttl
+#      out << ath
+#      out << []
+    end
+  end
 end
+
+# output header
+out.header(title, author)
 
 =begin
 # debug
