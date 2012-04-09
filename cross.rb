@@ -140,8 +140,7 @@ case  out_file
 when /\.tex$/i
   $graph_dir = out_file.sub(/\.tex$/i,'')
   Dir.mkdir($graph_dir) unless File.directory?($graph_dir)
-  out = TexOut::A3
-  formatter = TexOut
+  formatter = TexOut::A3
 end
 
 $stderr.puts "初期化中"

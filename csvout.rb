@@ -4,20 +4,17 @@ require 'adder'
 
 class CsvOut
 
-  def initialise(out_file, question, key_id, sections, *rest)
+  def initialize(out_file, questions, key_id, sections, *rest)
     @io = open(out_file,"w")
     @out = CSV::Writer.generate(@io)
     @question = questions
-    @key_id = kid
-    @pkey = pkeys
+    @key_id = key_id
     # 最後の改行はEXCELで開いたときにヘッダをわかりやすくするため
-    @head_line = ["",pkeys,"合計".sjis,"\n"].flatten
     @sects = sections
   end
-  attr_reader :out, :head_line, :empty_line, :question, :key_id
+  attr_reader :out, :head_line, :empty_line, :question, :key_id, :pkey
 
   def header(ttl, ath)
-    @empty_line = head_line.map{ "" }
     #      out << ttl
     #      out << ath
     #      out << []
@@ -25,6 +22,9 @@ class CsvOut
 
 
   def key(pkey,num)
+    @pkey = pkey
+    @head_line = ["",@pkey,"合計".sjis,"\n"].flatten
+    @empty_line = head_line.map{ "" }
     # do nothing now
     #
     # out << ["内訳", *pkey]
