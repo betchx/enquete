@@ -2,13 +2,13 @@
 
 
 #stg=chk
-stgs="chk chk-arg"
+stgs="chk" # chk-arg"
 ori=complex-cross.rb
 new=cross.rb
 
 function fail_message(){
 #echo fail_messege called with $*
-echo execution of $1 $2.rb for $3was failed.
+echo execution of $1 $2.rb for $3 was failed.
 if [ `wc -l $4` < 10 ]
 then
   nkf -w $4
