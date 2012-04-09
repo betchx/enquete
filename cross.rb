@@ -235,44 +235,56 @@ else
   out.setup(pkey,key_id,out_io,question)
 end
 
-# output header
+# ヘッダの出力
 out.header(title, author)
 
-# output primary keys
+# まず，主キーを出力する．
 $stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
 out.key(pkey, data.map{|x| x.size} )
 
-
+# スキップ対象列．省略時はスキップなし．
 skips = $skips || []
 
+# 全ての列に対して処理
 1.upto(ncol-1) do |ic|
+
+  # 主キーであればすでに出力済みなので，スキップする．
   next if ic == key_id  # skip same one
 
-  # skip if specified
+  # 指定されていればスキップする．
   next if skips.include?(ic)
 
   $stderr.puts sprintf("処理中：Q%03d :%s",ic, question[ic].utf8)
-  keys = all_key[ic].clone
-  toi = utf8(question[ic])
 
+  # キーの取得．事故防止のためクローン作成
+  keys = all_key[ic].clone
+
+  # セクション区切りかどうかを確認し，必要ならセクション部を出力する．
+  out.section_check(ic)
+
+  # 自由記述かどうかを判定する．
   is_free = false
+  toi = utf8(question[ic])
   FREE_TAG.each do |re|
     is_free = true if toi =~ re
   end
 
-  out.section_check(ic)
-
-
+  #自由記述かどうかで処理を振り分け
   if is_free
+    #自由記述の場合
     out.comments(ic) do |writer|
-    # loop
-    pkey.size.times do |ikey|
-      target = data[ikey].map{|x| x[ic]}.compact
-      writer.add(pkey[ikey],target) unless target.empty?
-    end
+      # キーごとに分類して出力する．
+      pkey.size.times do |ikey|
+        #対象を抽出
+        target = data[ikey].map{|x| x[ic]}.compact
+        # 出力． TeX等での出力を考慮してグループ毎に一括で出力処理
+        writer.add(pkey[ikey],target) unless target.empty?
+      end
     end
   else
+    #通常の回答の場合．
 
+    #キー毎に結果を修正する (クロス集計の本体部分)
     res = keys.map do |key|
       arr = data.map do |chunk|
         chunk.select{|x| check(x[ic], key)}.size
@@ -281,15 +293,15 @@ skips = $skips || []
       arr
     end
 
-    # calculate total
+    # 合計値の算出
     res.each do |arr|
       arr << arr[1..-1].inject{|r,x| x + r}
     end
 
-    # sort
+    # 合計値でソート
     result =  res.sort_by{|x| -x[-1]}
 
-    # output
+    # 出力
     out.table(ic,result)
   end
 end
