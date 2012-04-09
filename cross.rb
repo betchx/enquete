@@ -44,6 +44,8 @@ def apply_theme(g)
   g
 end
 
+require 'csvout'
+
 
 # 設定を記述したファイルを指定する．
 raise "設定ファイルを指定してください．" if ARGV.empty?
@@ -133,18 +135,21 @@ out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output") if ou
 
 $stderr.puts "#{out_file.utf8}に結果を出力します．"
 
-# TeX出力かどうかを判定
-tex_out = out_file =~ /\.tex$/i
+formatter = CsvOut
+$graph_dir = nil
+
+# 出力先の切り替え
+case  out_file 
+when /\.tex$/i
+  $graph_dir = out_file.sub(/\.tex$/i,'')
+  Dir.mkdir($graph_dir) unless File.directory?($graph_dir)
+  out = TexOut::A3
+  formatter = TexOut
+end
 
 $stderr.puts "初期化中"
 
-# workdir for graphic
-$graph_dir = nil
-if tex_out
-  $graph_dir = out_file.sub(/\.tex$/i,'')
-  Dir.mkdir($graph_dir) unless File.directory?($graph_dir)
-end
-
+# 削除候補
 #出力先グラフファイル名を指定する
 def gout(ic)
   sprintf("%s/QA-%03d.png",$graph_dir,ic)
@@ -170,70 +175,10 @@ head_line = ["",pkey,"合計".sjis,"\n"].flatten
 title = $title || "アンケート集計結果"
 author = $author || "土木学会中部支部"
 
-if tex_out
-  out = TexOut::A3.new(out_file, question, key_id, sec, $theme)
-else
-  out_io = open(out_file,"w")
-  out = CSV::Writer.generate(out_io)
-  class << out
-    # additional initalizer
-    def setup(pkeys,kid,io,questions)
-      @pkey = pkeys
-      @key_id = kid
-      @head_line = ["",pkeys,"合計".sjis,"\n"].flatten
-      @io = io
-      @question = questions
-    end
-    attr_reader :head_line, :empty_line, :question, :key_id
-    def out
-      self
-    end
 
-    def header(ttl, ath)
-      @empty_line = head_line.map{ "" }
-      #      out << ttl
-      #      out << ath
-      #      out << []
-    end
-    def key(pkey,num)
-      # do nothing now
-    end
-    def comments(ic)
-      out << empty_line  #空行
-      out << ["自由意見：".sjis,question[ic]]
-      out << [question[key_id], "回答\n".sjis]
-      yield Adder.new(self, :add_comments)
-    end
+# 出力先を開く
+out = formatter.new(out_file, question, key_id, sec, $theme)
 
-    def add_comments(key, *args)
-      if key
-        args.flatten.each do |iken|
-          out << [key, iken]
-        end
-      end
-    end
-
-    def table(ic, result)
-      out << empty_line  #空行
-      head_line[0] = question[ic] #ヘッダ行の変更
-      out << head_line  #ヘッダ行
-      result.each do |x|
-        out << x
-      end
-    end
-    alias :original_close :close
-    def close
-      original_close
-      @io.close
-    end
-
-    def section_check(ic)
-      # do nothing now
-    end
-  end
-
-  out.setup(pkey,key_id,out_io,question)
-end
 
 # ヘッダの出力
 out.header(title, author)
