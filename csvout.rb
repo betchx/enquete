@@ -25,11 +25,12 @@ class CsvOut
     @pkey = pkey
     @head_line = ["",@pkey,"合計".sjis,"\n"].flatten
     @empty_line = head_line.map{ "" }
-    # do nothing now
-    #
-    # out << ["内訳", *pkey]
-    # out << num
-    # out << []
+
+    out << [@questions[@key_id] ]
+    head_line[0] = "内訳".sjis
+    out << head_line
+    out << ["有効回答数".sjis, num, num.inject(0){|a,b| a+b}].flatten
+    out << []
   end
 
   def comments(ic)
