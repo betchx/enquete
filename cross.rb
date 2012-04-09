@@ -202,11 +202,15 @@ else
       out << empty_line  #空行
       out << ["自由意見：".sjis,question[ic]]
       out << [question[key_id], "回答\n".sjis]
-      yield Adder.new(self, :add_data)
+      yield Adder.new(self, :add_comments)
     end
 
-    def add_data(*args)
-      out << args.flatten.compact
+    def add_comments(key, *args)
+      if key
+        args.flatten.each do |iken|
+          out << [key, iken]
+        end
+      end
     end
 
     def table(ic, result)
