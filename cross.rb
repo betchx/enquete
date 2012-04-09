@@ -28,61 +28,30 @@ end
 require 'texout'
 require 'csvout'
 
-
-# 設定を記述したファイルを指定する．
-raise "設定ファイルを指定してください．" if ARGV.empty?
-template_file = ARGV.shift
-require template_file
-
-source = nil
-if $source
-  source = $source
-else
-  source = arg_or_query("enquate csv file", "enquate.csv","soure file")
-end
-
-$stderr.puts "#{source.utf8}から読み込みます"
-f = CSV.open(source,'r')
-question = f.shift
-head = question.clone
-
-ans = 0
-if $column.nil?
-  if ARGV.empty?
-    puts "クロス集計に用いる列を指定してください"
-    i = 0
-    while ans == 0
-      10.times do
-        i = i + 1
-        if head[i].nil?
-          i = 0
-          break
-        end
-        puts "#{i}: #{utf8(head[i])}"
+###############################################
+#主キーの列番号を問い合わせる
+def query_column(head)
+  ans = 0
+  puts "クロス集計に用いる列を指定してください"
+  i = 0
+  while ans == 0
+    10.times do
+      i = i + 1
+      if head[i].nil?
+        i = 0
+        break
       end
-      puts "入力？（空行で次の行を表示)>"
-      ans = gets.to_i
+      puts "#{i}: #{utf8(head[i])}"
     end
-  else
-    ans = ARGV.shift.to_i
+    puts "入力？（空行で次の行を表示)>"
+    ans = gets.to_i
   end
-else
-  ans = $column
-end
-key_id = ans
-
-$stderr.puts sprintf("Q%03d「%s」により分析します.",
-                     key_id, question[key_id].utf8)
-
-# 列数
-ncol = question.size
-
-# read  data body
-body = []
-f.each do |row|
-  body << row
 end
 
+# キーが行に含まれているかどうかを判定する関数
+# 複数選択の結果があるので，単純な比較ではうまくいかないため作成
+# 設定ファイルで上書き可能
+# TODO:メソッド名が不適切なのでリネームする
 def check(value, key)
   return false if value.nil? || value.empty?
   value.split(/,/).each do |x|
@@ -91,31 +60,50 @@ def check(value, key)
   return false
 end
 
-# 各列でキーを取得する．
-all_key = [nil]  # １列目は処理しない．
 
-1.upto(ncol-1) do |ic|
-  all_key << body.map{|x| x[ic]}.compact.map{|x|
-    x.split(/,/).map{|s| s.strip}
-  }.flatten.sort.uniq.reject{|x| x =~ /^----/}# ----で始まるものは使わない
+#############################################################
+## Main
+#############################################################
+
+
+# 設定を記述したファイルを指定する．
+raise "設定ファイルを指定してください．" if ARGV.empty?
+template_file = ARGV.shift
+# 設定ファイルを読み込み
+require template_file
+
+# ソースファイル名の取得
+source = $source || arg_or_query("enquate csv file", "enquate.csv","soure file")
+$stderr.puts "#{source.utf8}から読み込みます"
+
+# ファイルのオープン
+f = CSV.open(source,'r')
+questions = f.shift
+
+# 主キーの列番号を取得
+key_id = $column
+if key_id.nil?
+  if ARGV.empty?
+    key_id = query_column(questions)
+  else
+    key_id = ARGV.shift.to_i
+  end
 end
 
-$stderr.puts "アンケートデータの読み込み中"
+$stderr.puts sprintf("Q%03d「%s」により分析します.",
+                     key_id, questions[key_id].utf8)
 
-# クロス集計列ごとにデータを分類
-# dataは3次元配列になっている
-data = []
-pkey = all_key[key_id]
-
-pkey.each do |key|
-  data << body.select{|x| check(x[key_id], key)}
-end
+# 列数
+ncol = questions.size
 
 #output
 out_file = $output
 out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output") if out_file.nil?
 
 $stderr.puts "#{out_file.utf8}に結果を出力します．"
+
+
+$stderr.puts "初期化中"
 
 # default formatter
 formatter = CsvOut
@@ -129,7 +117,6 @@ when /\.tex$/i
   formatter = TexOut::A3
 end
 
-$stderr.puts "初期化中"
 
 # 削除候補
 #出力先グラフファイル名を指定する
@@ -137,10 +124,9 @@ def gout(ic)
   sprintf("%s/QA-%03d.png",$graph_dir,ic)
 end
 
-sec = nil
-if $sections
-  sec = $sections
-else
+#セクションの設定を取得．グローバル変数になければ引数から得る．
+sec = $sections
+unless sec
   sec = {}
   until ARGV.empty?
     key = ARGV.shift
@@ -149,23 +135,48 @@ else
   end
 end
 
-out = nil
-
-head_line = ["",pkey,"合計".sjis,"\n"].flatten
-
+#タイトル他を得る
 title = $title || "アンケート集計結果"
 author = $author || "土木学会中部支部"
 
+######################################################
+#処理開始
+
+$stderr.puts "アンケートデータの読み込み中"
+
+# read  data body
+body = []
+f.each do |row|
+  body << row
+end
+
+# 各列でキーを取得する．
+all_key = [nil]  # １列目は処理しない．
+
+1.upto(ncol-1) do |ic|
+  all_key << body.map{|x| x[ic]}.compact.map{|x|
+    x.split(/,/).map{|s| s.strip}
+  }.flatten.sort.uniq.reject{|x| x =~ /^----/}# ----で始まるものは使わない
+end
+
+# クロス集計列ごとにデータを分類
+# dataは3次元配列になっている
+data = []
+pkey = all_key[key_id]
+
+pkey.each do |key|
+  data << body.select{|x| check(x[key_id], key)}
+end
 
 # 出力先を開く
-out = formatter.new(out_file, question, key_id, sec, $theme)
+out = formatter.new(out_file, questions, key_id, sec, $theme)
 
 
 # ヘッダの出力
 out.header(title, author)
 
 # まず，主キーを出力する．
-$stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
+$stderr.puts sprintf("Key Q%03d:%s", key_id, questions[key_id].utf8)
 out.key(pkey, data.map{|x| x.size} )
 
 # スキップ対象列．省略時はスキップなし．
@@ -180,7 +191,7 @@ skips = $skips || []
   # 指定されていればスキップする．
   next if skips.include?(ic)
 
-  $stderr.puts sprintf("処理中：Q%03d :%s",ic, question[ic].utf8)
+  $stderr.puts sprintf("処理中：Q%03d :%s",ic, questions[ic].utf8)
 
   # キーの取得．事故防止のためクローン作成
   keys = all_key[ic].clone
@@ -190,7 +201,7 @@ skips = $skips || []
 
   # 自由記述かどうかを判定する．
   is_free = false
-  toi = utf8(question[ic])
+  toi = utf8(questions[ic])
   FREE_TAG.each do |re|
     is_free = true if toi =~ re
   end
