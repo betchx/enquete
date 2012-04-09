@@ -4,10 +4,6 @@
 require 'csv'
 require 'arg_or_query'
 require 'nkf'
-require 'rubygems'
-require 'gruff'
-require 'side_stacked_bar_fixed'
-require 'texout'
 
 
 def utf8(str)
@@ -44,6 +40,7 @@ def apply_theme(g)
   g
 end
 
+require 'texout'
 require 'csvout'
 
 

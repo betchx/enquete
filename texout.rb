@@ -1,6 +1,7 @@
 #! ruby
 # coding:utf-8
 
+require 'graphout'
 # redirect utility class
 class Adder
   def initialize(tgt, mthd)
@@ -17,6 +18,8 @@ end
 
 module TexOut
   class Base
+    include GraphOut
+
     def initialize(filename, questions, pkey_id, sections, graph_theme=nil)
       raise "ファイル名エラー" unless filename =~ /\.tex$/i
 
