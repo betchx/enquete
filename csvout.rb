@@ -4,15 +4,15 @@ require 'adder'
 
 class CsvOut
 
-  def initialize(out_file, questions, key_id, sections, *rest)
+  def initialize(out_file, header, key_id, sections, *rest)
     @io = open(out_file,"w")
     @out = CSV::Writer.generate(@io)
-    @question = questions
+    @questions = header
     @key_id = key_id
     # 最後の改行はEXCELで開いたときにヘッダをわかりやすくするため
     @sects = sections
   end
-  attr_reader :out, :head_line, :empty_line, :question, :key_id, :pkey
+  attr_reader :out, :head_line, :empty_line, :questions, :key_id, :pkey
 
   def header(ttl, ath)
     #      out << ttl
@@ -34,8 +34,8 @@ class CsvOut
 
   def comments(ic)
     out << empty_line  #空行
-    out << ["自由意見：".sjis,question[ic]]
-    out << [question[key_id], "回答\n".sjis]
+    out << ["自由意見：".sjis,questions[ic]]
+    out << [questions[key_id], "回答\n".sjis]
     yield Adder.new(self, :add_comments)
   end
 
@@ -49,7 +49,7 @@ class CsvOut
 
   def table(ic, result)
     out << empty_line  #空行
-    head_line[0] = question[ic] #ヘッダ行の変更
+    head_line[0] = questions[ic] #ヘッダ行の変更
     out << head_line  #ヘッダ行
     result.each do |x|
       out << x
