@@ -11,7 +11,7 @@ do
   mv out.$ext new.$ext
   (ruby $ori $stg.rb out.$ext 2> /dev/null)|| exit
   mv out.$ext ori.$ext
-  (diff -C 3 ori.$ext new.$ext | nkf -w) && rm ori.$ext new.$ext && \
+  (diff -C 3 ori.$ext new.$ext > diff-out.log || (nkf -w diff-out.log; false) ) && rm ori.$ext new.$ext diff-out.log && \
     (if [ -d out ]; then rmdir out; fi) && \
     echo Test for $ext was passed.
 done
