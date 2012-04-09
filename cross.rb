@@ -3,8 +3,9 @@
 
 require 'csv'
 require 'arg_or_query'
-require 'nkf'
 
+# 文字エンコード処理関係
+require 'nkf'
 
 def utf8(str)
   str.utf8
@@ -21,6 +22,8 @@ class String
   end
 end
 
+###############################################
+## 出力関係
 
 require 'texout'
 require 'csvout'
@@ -114,6 +117,7 @@ out_file = arg_or_query("出力先（TeX/CSV）","cross_out.csv","output") if ou
 
 $stderr.puts "#{out_file.utf8}に結果を出力します．"
 
+# default formatter
 formatter = CsvOut
 $graph_dir = nil
 
@@ -147,7 +151,6 @@ end
 
 out = nil
 
-# 最後の改行はEXCELで開いたときにヘッダをわかりやすくするため
 head_line = ["",pkey,"合計".sjis,"\n"].flatten
 
 title = $title || "アンケート集計結果"
