@@ -1,5 +1,7 @@
 # output with csv format for enquete result
 
+require 'adder'
+
 class CsvOut
 
   def initialise(out_file, question, key_id, sections, *rest)
