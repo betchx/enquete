@@ -242,18 +242,6 @@ out.header(title, author)
 $stderr.puts sprintf("Key Q%03d:%s", key_id, question[key_id].utf8)
 out.key(pkey, data.map{|x| x.size} )
 
-## 削除予定
-g = nil
-labels = nil
-gdata = nil
-hash_label = {}
-sec_num = tex_out && out.sec_num
-width = tex_out && out.width
-item_width = tex_out && out.item_width
-empty_line = tex_out || out.empty_line
-
-##
-
 
 skips = $skips || []
 
