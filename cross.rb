@@ -43,7 +43,7 @@ def query_column(head)
       end
       puts "#{i}: #{utf8(head[i])}"
     end
-    puts "入力？（空行で次の行を表示)>"
+    puts "入力？（空行で次の行を表示, -1：クロス集計はしない)>"
     ans = gets.to_i
   end
 end
@@ -88,10 +88,15 @@ if key_id.nil?
   else
     key_id = ARGV.shift.to_i
   end
+else
+  key_id = -1 if key_id == 0
 end
 
+
+if key_id > 0
 $stderr.puts sprintf("Q%03d「%s」により分析します.",
                      key_id, questions[key_id].utf8)
+end
 
 # 列数
 ncol = questions.size
@@ -162,11 +167,17 @@ end
 # クロス集計列ごとにデータを分類
 # dataは3次元配列になっている
 data = []
-pkey = all_key[key_id]
-
-pkey.each do |key|
-  data << body.select{|x| check(x[key_id], key)}
+pkey = nil
+if key_id >= 0
+  pkey = all_key[key_id]
+  pkey.each do |key|
+    data << body.select{|x| check(x[key_id], key)}
+  end
+else
+  pkey = ["回答数".sjis]
+  data = [body.clone]
 end
+
 
 # 出力先を開く
 out = formatter.new(out_file, questions, key_id, sec, $theme)
@@ -176,7 +187,7 @@ out = formatter.new(out_file, questions, key_id, sec, $theme)
 out.header(title, author)
 
 # まず，主キーを出力する．
-$stderr.puts sprintf("Key Q%03d:%s", key_id, questions[key_id].utf8)
+$stderr.puts sprintf("Key Q%03d:%s", key_id, questions[key_id].utf8) if key_id >= 0
 out.key(pkey, data.map{|x| x.size} )
 
 # スキップ対象列．省略時はスキップなし．
@@ -208,6 +219,9 @@ skips = $skips || []
 
   #自由記述かどうかで処理を振り分け
   if is_free
+    #指定されていればスキップする．
+    next if $no_list
+
     #自由記述の場合
     out.comments(ic) do |writer|
       # キーごとに分類して出力する．
